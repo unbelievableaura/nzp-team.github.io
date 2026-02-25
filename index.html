@@ -13,7 +13,6 @@
     <link rel="icon" href="nzportable.ico">
     <style>
       :root {
-        --menu-line: #72767f;
         --menu-text: #d4d5d8;
         --menu-red: #a91a1a;
         --menu-red-soft: #7e1414;
@@ -29,8 +28,6 @@
         background: #000;
         color: var(--menu-text);
         font-family: "Lucida Console", "Courier New", monospace;
-        -webkit-font-smoothing: none;
-        text-rendering: geometricPrecision;
       }
 
       .emscripten {
@@ -122,20 +119,12 @@
 
       #intro-title-main {
         margin: 0;
-        font-size: clamp(38px, 7vw, 96px);
-        letter-spacing: 0.08em;
-        color: var(--menu-text);
-        line-height: 1;
-        text-transform: uppercase;
-        text-shadow: 0 0 2px rgba(255, 255, 255, 0.32), 0 0 14px rgba(0, 0, 0, 0.8);
+        min-height: clamp(44px, 8vw, 88px);
       }
 
       #intro-title-sub {
         margin-top: 8px;
-        font-size: clamp(16px, 2.2vw, 30px);
-        letter-spacing: 0.34em;
-        color: var(--menu-red);
-        text-transform: uppercase;
+        min-height: clamp(18px, 2.4vw, 28px);
       }
 
       #intro-form {
@@ -151,10 +140,7 @@
       }
 
       #intro-name-label {
-        font-size: clamp(17px, 2.4vw, 48px);
-        letter-spacing: 0.06em;
-        color: #d7d8db;
-        text-transform: uppercase;
+        min-height: clamp(18px, 2.5vw, 28px);
       }
 
       #intro-name-input {
@@ -180,6 +166,10 @@
         gap: 16px;
       }
 
+      #intro-ready {
+        min-height: 16px;
+      }
+
       #intro-enter-btn {
         min-width: 220px;
         height: 52px;
@@ -187,9 +177,11 @@
         background: linear-gradient(180deg, rgba(147, 27, 27, 0.95), rgba(86, 11, 11, 0.92));
         color: #ece9e9;
         font-family: inherit;
-        font-size: 21px;
-        letter-spacing: 0.09em;
         cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0 14px;
       }
 
       #intro-enter-btn:disabled {
@@ -202,9 +194,7 @@
       }
 
       #intro-status-text {
-        min-height: 22px;
-        color: #a8acb2;
-        font-size: 15px;
+        min-height: 16px;
       }
 
       #intro-progress-shell {
@@ -234,8 +224,7 @@
       #intro-progress-percent {
         margin-top: 8px;
         text-align: right;
-        font-size: 12px;
-        color: #afb3b9;
+        min-height: 12px;
       }
 
       #intro-cursor {
@@ -259,6 +248,45 @@
         opacity: 0;
         visibility: hidden;
         transition: opacity 280ms ease, visibility 280ms ease;
+      }
+
+      .bitmap-text {
+        display: inline-flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 0;
+      }
+
+      .bitmap-glyph {
+        display: inline-block;
+        width: calc(8px * var(--scale, 2));
+        height: calc(8px * var(--scale, 2));
+        background-image: url("assets/intro/charset.png");
+        background-repeat: no-repeat;
+        background-size: calc(128px * var(--scale, 2)) calc(128px * var(--scale, 2));
+        image-rendering: pixelated;
+      }
+
+      .bitmap-space {
+        display: inline-block;
+        width: calc(6px * var(--scale, 2));
+        height: calc(8px * var(--scale, 2));
+      }
+
+      .bitmap-red .bitmap-glyph {
+        filter: hue-rotate(-18deg) saturate(150%) brightness(82%);
+      }
+
+      .bitmap-small {
+        --scale: 1.25;
+      }
+
+      .bitmap-medium {
+        --scale: 1.8;
+      }
+
+      .bitmap-large {
+        --scale: 3;
       }
 
       .legacy-hidden {
@@ -305,8 +333,12 @@
           min-width: 0;
         }
 
-        #intro-title-sub {
-          letter-spacing: 0.2em;
+        .bitmap-large {
+          --scale: 2.2;
+        }
+
+        .bitmap-medium {
+          --scale: 1.45;
         }
       }
     </style>
@@ -318,28 +350,28 @@
         <div class="intro-row-line"></div>
         <img id="intro-logo" src="assets/intro/logo.png" alt="NZP logo">
         <div id="intro-heading">
-          <h1 id="intro-title-main">NAZI ZOMBIES</h1>
-          <div id="intro-title-sub">ON SOLANA</div>
+          <h1 id="intro-title-main" class="bitmap-text bitmap-large" aria-label="NAZI ZOMBIES"></h1>
+          <div id="intro-title-sub" class="bitmap-text bitmap-medium bitmap-red" aria-label="ON SOLANA"></div>
         </div>
         <div class="intro-row-line"></div>
 
         <div id="intro-form">
           <div id="intro-name-row">
-            <label id="intro-name-label" for="intro-name-input">PLAYER NAME</label>
+            <label id="intro-name-label" for="intro-name-input" class="bitmap-text bitmap-medium" aria-label="PLAYER NAME"></label>
             <input id="intro-name-input" type="text" maxlength="24" autocomplete="name" spellcheck="false" value="Unknown Soldier">
           </div>
 
           <div id="intro-controls">
-            <div style="font-size:13px;color:#9ba0a8;">PROFILE READY</div>
-            <button type="button" id="intro-enter-btn">ENTER</button>
+            <div id="intro-ready" class="bitmap-text bitmap-small" aria-label="PROFILE READY"></div>
+            <button type="button" id="intro-enter-btn" aria-label="ENTER"><span id="intro-enter-text" class="bitmap-text bitmap-medium"></span></button>
           </div>
 
           <div id="intro-status">
-            <div id="intro-status-text">Awaiting deployment orders...</div>
+            <div id="intro-status-text" class="bitmap-text bitmap-small" aria-live="polite"></div>
             <div id="intro-progress-shell" aria-hidden="true">
               <div id="intro-progress-fill"></div>
             </div>
-            <div id="intro-progress-percent">0%</div>
+            <div id="intro-progress-percent" class="bitmap-text bitmap-small" aria-live="polite"></div>
           </div>
         </div>
 
@@ -357,9 +389,39 @@
     <canvas class="emscripten" id="canvas" oncontextmenu="event.preventDefault()" hidden="1"></canvas>
 
     <script type="text/javascript">
+      function renderBitmapText(target, text) {
+        if (!target) {
+          return;
+        }
+        target.textContent = "";
+        var source = String(text || "").toUpperCase();
+        for (var i = 0; i < source.length; i++) {
+          var ch = source.charCodeAt(i);
+          if (source[i] === " ") {
+            var space = document.createElement("span");
+            space.className = "bitmap-space";
+            target.appendChild(space);
+            continue;
+          }
+          if (ch < 0 || ch > 127) {
+            ch = 63;
+          }
+          var col = ch & 15;
+          var row = ch >> 4;
+          var glyph = document.createElement("span");
+          glyph.className = "bitmap-glyph";
+          glyph.style.backgroundPosition = "calc(" + (-col * 8) + "px * var(--scale, 2)) calc(" + (-row * 8) + "px * var(--scale, 2))";
+          target.appendChild(glyph);
+        }
+      }
+
       var IntroUI = {
         state: "idle",
         hidden: false,
+        downloadsDone: false,
+        engineReady: false,
+        handoffDone: false,
+        engineReadyAt: 0,
         els: {},
         init: function() {
           this.els.overlay = document.getElementById("intro-overlay");
@@ -369,7 +431,22 @@
           this.els.bar = document.getElementById("intro-progress-fill");
           this.els.percent = document.getElementById("intro-progress-percent");
           this.els.shell = document.getElementById("intro-progress-shell");
-          return !!(this.els.overlay && this.els.input && this.els.enter && this.els.status && this.els.bar && this.els.percent && this.els.shell);
+          this.els.titleMain = document.getElementById("intro-title-main");
+          this.els.titleSub = document.getElementById("intro-title-sub");
+          this.els.nameLabel = document.getElementById("intro-name-label");
+          this.els.ready = document.getElementById("intro-ready");
+          this.els.enterText = document.getElementById("intro-enter-text");
+          var ok = !!(this.els.overlay && this.els.input && this.els.enter && this.els.status && this.els.bar && this.els.percent && this.els.shell);
+          if (ok) {
+            renderBitmapText(this.els.titleMain, "NAZI ZOMBIES");
+            renderBitmapText(this.els.titleSub, "ON SOLANA");
+            renderBitmapText(this.els.nameLabel, "PLAYER NAME");
+            renderBitmapText(this.els.ready, "PROFILE READY");
+            renderBitmapText(this.els.enterText, "ENTER");
+            renderBitmapText(this.els.status, "AWAITING DEPLOYMENT ORDERS...");
+            renderBitmapText(this.els.percent, "0%");
+          }
+          return ok;
         },
         setState: function(next) {
           this.state = next;
@@ -384,7 +461,7 @@
           if (!this.els.status) {
             return;
           }
-          this.els.status.textContent = text || "";
+          renderBitmapText(this.els.status, text || "");
           if (indeterminate) {
             this.els.shell.classList.add("indeterminate");
           } else {
@@ -393,8 +470,45 @@
           if (typeof percent === "number" && isFinite(percent)) {
             var value = Math.max(0, Math.min(100, percent));
             this.els.bar.style.width = value + "%";
-            this.els.percent.textContent = Math.round(value) + "%";
+            renderBitmapText(this.els.percent, Math.round(value) + "%");
           }
+        },
+        markDownloadsDone: function() {
+          this.downloadsDone = true;
+          this.attemptHandoff();
+        },
+        markEngineReady: function() {
+          this.engineReady = true;
+          if (!this.engineReadyAt) {
+            this.engineReadyAt = Date.now();
+          }
+          this.attemptHandoff();
+          var self = this;
+          setTimeout(function() {
+            if (!self.handoffDone && self.engineReady && (Date.now() - self.engineReadyAt) >= 4000) {
+              self.handoff();
+            }
+          }, 4100);
+        },
+        attemptHandoff: function() {
+          if (this.handoffDone || !this.downloadsDone || !this.engineReady) {
+            return;
+          }
+          this.handoff();
+        },
+        handoff: function() {
+          if (this.handoffDone) {
+            return;
+          }
+          this.handoffDone = true;
+          this.setState("engine_ready");
+          var self = this;
+          requestAnimationFrame(function() {
+            requestAnimationFrame(function() {
+              self.setState("handoff");
+              self.hide();
+            });
+          });
         },
         hide: function() {
           if (this.hidden || !this.els.overlay) {
@@ -460,12 +574,11 @@
           NameStore.save(name);
           this.ensureArgs(name);
           IntroUI.setState("starting");
-          IntroUI.setStatus("Downloading...", 0, false);
+          IntroUI.setStatus("DOWNLOADING...", 0, false);
           begin();
         }
       };
 
-      // connect to canvas
       var Module = {
         files: {
           "default.fmf": "default.fmf",
@@ -488,6 +601,7 @@
           var progressElement = document.getElementById("progress");
           var percent = null;
           var indeterminate = true;
+
           if (m) {
             text = m[1].trim();
             var v = parseInt(m[2], 10) * 100;
@@ -504,19 +618,18 @@
             progressElement.max = null;
             progressElement.hidden = true;
           }
+
           statusElement.innerHTML = text;
           statusElement.hidden = text.length === 0;
 
-          if (IntroUI.state === "starting" || IntroUI.state === "loading") {
+          if (IntroUI.state === "starting" || IntroUI.state === "loading" || IntroUI.state === "engine_ready") {
             IntroUI.setState("loading");
-            IntroUI.setStatus(text || "", percent, indeterminate);
+            IntroUI.setStatus((text || "").toUpperCase(), percent, indeterminate);
           }
+
           if (text === "All downloads complete.") {
-            IntroUI.setStatus(text, 100, false);
-            setTimeout(function() {
-              IntroUI.setState("handoff");
-              IntroUI.hide();
-            }, 650);
+            IntroUI.setStatus("ALL DOWNLOADS COMPLETE.", 100, false);
+            IntroUI.markDownloadsDone();
           }
         },
         totalDependencies: 0,
@@ -529,7 +642,9 @@
             if (Module["sched"] === undefined) {
               alert("Unable to initialise. You may need to restart your browser. If you get this often and inconsistently, consider using a 64bit browser instead.");
               Module.setStatus("Initialisation Failure");
+              return;
             }
+            IntroUI.markEngineReady();
           }
         ]
       };
