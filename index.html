@@ -389,6 +389,11 @@
     <canvas class="emscripten" id="canvas" oncontextmenu="event.preventDefault()" hidden="1"></canvas>
 
     <script type="text/javascript">
+      var ASSET_REV = "2026-02-25-bootfix1";
+      function withRev(path) {
+        return path + "?v=" + encodeURIComponent(ASSET_REV);
+      }
+
       function renderBitmapText(target, text) {
         if (!target) {
           return;
@@ -416,13 +421,10 @@
       }
 
       var IntroUI = {
-        state: "idle",
+        state: "preloading",
         hidden: false,
-        downloadsDone: false,
-        frameReady: false,
-        engineReady: false,
-        fallbackHandoffTimer: null,
         handoffDone: false,
+        engineReady: false,
         els: {},
         init: function() {
           this.els.overlay = document.getElementById("intro-overlay");
@@ -443,8 +445,8 @@
             renderBitmapText(this.els.titleSub, "ON SOLANA");
             renderBitmapText(this.els.nameLabel, "PLAYER NAME");
             renderBitmapText(this.els.ready, "PROFILE READY");
-            renderBitmapText(this.els.enterText, "ENTER");
-            renderBitmapText(this.els.status, "AWAITING DEPLOYMENT ORDERS...");
+            renderBitmapText(this.els.enterText, "PRELOADING...");
+            renderBitmapText(this.els.status, "PRELOADING PACKAGES... 0%");
             renderBitmapText(this.els.percent, "0%");
           }
           return ok;
@@ -452,7 +454,7 @@
         setState: function(next) {
           this.state = next;
           if (this.els.overlay) {
-            this.els.overlay.classList.toggle("intro-loading", next === "starting" || next === "loading");
+            this.els.overlay.classList.toggle("intro-loading", next !== "idle");
           }
           if (this.els.input) {
             this.els.input.disabled = next !== "idle";
@@ -461,10 +463,12 @@
             this.els.enter.disabled = next !== "idle";
           }
           if (this.els.enterText) {
-            if (next === "starting" || next === "loading" || next === "engine_ready") {
-              renderBitmapText(this.els.enterText, "LOADING...");
-            } else {
+            if (next === "idle") {
               renderBitmapText(this.els.enterText, "ENTER");
+            } else if (next === "engine_ready") {
+              renderBitmapText(this.els.enterText, "LAUNCHING...");
+            } else {
+              renderBitmapText(this.els.enterText, "LOADING...");
             }
           }
         },
@@ -484,61 +488,20 @@
             renderBitmapText(this.els.percent, Math.round(value) + "%");
           }
         },
-        markDownloadsDone: function() {
-          this.downloadsDone = true;
-          this.onGateUpdated();
-        },
-        markFrameReady: function() {
-          this.frameReady = true;
-          this.onGateUpdated();
-        },
         markEngineReady: function() {
           this.engineReady = true;
-          this.onGateUpdated();
+          this.tryHandoff();
         },
-        scheduleFallbackHandoff: function() {
-          if (this.fallbackHandoffTimer || this.handoffDone) {
+        tryHandoff: function() {
+          if (this.handoffDone || !BootBridge.started || !BootPreload.isReady() || !this.engineReady) {
             return;
-          }
-          var self = this;
-          this.fallbackHandoffTimer = setTimeout(function() {
-            if (!self.handoffDone && self.downloadsDone && self.engineReady) {
-              self.setStatus("LAUNCHING...", 100, false);
-              self.handoff();
-            }
-          }, 1800);
-        },
-        onGateUpdated: function() {
-          if (this.handoffDone || !this.downloadsDone || !this.engineReady) {
-            return;
-          }
-          this.scheduleFallbackHandoff();
-          if (!this.frameReady) {
-            this.setState("engine_ready");
-            this.setStatus("FINALIZING LAUNCH...", 100, false);
-            return;
-          }
-          this.setState("engine_ready");
-          this.setStatus("FINALIZING LAUNCH...", 100, false);
-          var self = this;
-          setTimeout(function() {
-            self.handoff();
-          }, 650);
-        },
-        handoff: function() {
-          if (this.handoffDone || !this.downloadsDone || !this.engineReady) {
-            return;
-          }
-          if (this.fallbackHandoffTimer) {
-            clearTimeout(this.fallbackHandoffTimer);
-            this.fallbackHandoffTimer = null;
           }
           this.handoffDone = true;
           this.setState("engine_ready");
+          this.setStatus("LAUNCHING...", 100, false);
           var self = this;
           requestAnimationFrame(function() {
             requestAnimationFrame(function() {
-              self.setState("handoff");
               self.hide();
             });
           });
@@ -583,7 +546,7 @@
 
       var BootBridge = {
         started: false,
-        forceHandoffTimer: null,
+        pendingStart: false,
         ensureArgs: function(name) {
           var current = Array.isArray(Module.arguments) ? Module.arguments.slice() : [];
           var next = [];
@@ -598,34 +561,171 @@
           next.push(name);
           Module.arguments = next;
         },
-        handleEnterAction: function() {
+        startEngineNow: function() {
           if (this.started || Module.began) {
             return;
           }
           this.started = true;
+          this.pendingStart = false;
           var name = NameStore.sanitize(IntroUI.els.input.value);
           IntroUI.els.input.value = name;
           NameStore.save(name);
           this.ensureArgs(name);
-          IntroUI.setState("starting");
-          IntroUI.setStatus("DOWNLOADING...", 0, false);
+          IntroUI.setState("loading");
+          IntroUI.setStatus("INITIALIZING ENGINE...", 100, true);
           begin();
-          var self = this;
-          this.forceHandoffTimer = setTimeout(function() {
-            if (!IntroUI.handoffDone && IntroUI.downloadsDone) {
-              IntroUI.markEngineReady();
-              IntroUI.setStatus("LAUNCHING...", 100, false);
-              IntroUI.handoff();
+        },
+        handleEnterAction: function() {
+          if (this.started || Module.began) {
+            return;
+          }
+          if (!BootPreload.isReady()) {
+            this.pendingStart = true;
+            IntroUI.setStatus("PRELOADING PACKAGES... " + Math.round(BootPreload.progress) + "%", BootPreload.progress, false);
+            return;
+          }
+          this.startEngineNow();
+        },
+        onPreloadReady: function() {
+          IntroUI.setState("idle");
+          IntroUI.setStatus("PACKAGES READY. PRESS ENTER.", 100, false);
+          if (this.pendingStart) {
+            this.startEngineNow();
+          }
+        }
+      };
+
+      var BootPreload = {
+        state: "idle",
+        progress: 0,
+        started: false,
+        urls: {
+          fmf: withRev("default.fmf"),
+          game: withRev("nzp/game.pk3"),
+          progs: withRev("nzp/progs.pk3"),
+          js: withRev("ftewebgl.js"),
+          wasm: withRev("ftewebgl.wasm")
+        },
+        expectedBytes: {
+          fmf: 96,
+          game: 93481452,
+          progs: 478925,
+          js: 165608,
+          wasm: 5178106
+        },
+        loadedByKey: {},
+        buffers: {},
+        totalExpected: 0,
+        isReady: function() {
+          return this.state === "ready";
+        },
+        recalcProgress: function() {
+          var loaded = 0;
+          var keys = Object.keys(this.expectedBytes);
+          for (var i = 0; i < keys.length; i++) {
+            var key = keys[i];
+            loaded += this.loadedByKey[key] || 0;
+          }
+          this.progress = this.totalExpected > 0 ? (loaded / this.totalExpected) * 100 : 0;
+          IntroUI.setStatus("PRELOADING PACKAGES... " + Math.round(this.progress) + "%", this.progress, false);
+        },
+        fetchWithProgress: async function(key, url) {
+          var response = await fetch(url, { credentials: "same-origin", cache: "force-cache" });
+          if (!response.ok) {
+            throw new Error("Failed preload: " + key);
+          }
+          var reader = response.body && response.body.getReader ? response.body.getReader() : null;
+          if (!reader) {
+            var whole = await response.arrayBuffer();
+            this.loadedByKey[key] = whole.byteLength;
+            this.recalcProgress();
+            return whole;
+          }
+          var chunks = [];
+          var received = 0;
+          while (true) {
+            var part = await reader.read();
+            if (part.done) {
+              break;
             }
-          }, 12000);
+            chunks.push(part.value);
+            received += part.value.byteLength;
+            this.loadedByKey[key] = Math.max(received, this.loadedByKey[key] || 0);
+            this.recalcProgress();
+          }
+          var total = 0;
+          for (var i = 0; i < chunks.length; i++) {
+            total += chunks[i].byteLength;
+          }
+          var merged = new Uint8Array(total);
+          var offset = 0;
+          for (var j = 0; j < chunks.length; j++) {
+            merged.set(chunks[j], offset);
+            offset += chunks[j].byteLength;
+          }
+          this.loadedByKey[key] = total;
+          this.recalcProgress();
+          return merged.buffer;
+        },
+        start: async function() {
+          if (this.started) {
+            return;
+          }
+          this.started = true;
+          this.state = "preloading";
+          this.totalExpected = this.expectedBytes.fmf + this.expectedBytes.game + this.expectedBytes.progs + this.expectedBytes.js + this.expectedBytes.wasm;
+          this.loadedByKey = { fmf: 0, game: 0, progs: 0, js: 0, wasm: 0 };
+          IntroUI.setState("loading");
+          IntroUI.setStatus("PRELOADING PACKAGES... 0%", 0, false);
+
+          try {
+            var results = await Promise.all([
+              this.fetchWithProgress("fmf", this.urls.fmf),
+              this.fetchWithProgress("game", this.urls.game),
+              this.fetchWithProgress("progs", this.urls.progs),
+              this.fetchWithProgress("js", this.urls.js),
+              this.fetchWithProgress("wasm", this.urls.wasm)
+            ]);
+
+            this.buffers.fmf = results[0];
+            this.buffers.game = results[1];
+            this.buffers.progs = results[2];
+            this.buffers.js = results[3];
+            this.buffers.wasm = results[4];
+
+            Module.files["default.fmf"] = this.buffers.fmf;
+            Module.files["nzp/game.pk3"] = this.buffers.game;
+            Module.files["nzp/progs.pk3"] = this.buffers.progs;
+            Module.wasmBinary = this.buffers.wasm;
+
+            this.progress = 100;
+            this.state = "ready";
+            IntroUI.setStatus("PACKAGES READY. PRESS ENTER.", 100, false);
+            BootBridge.onPreloadReady();
+          } catch (err) {
+            this.state = "failed";
+            console.error(err);
+            IntroUI.setStatus("PRELOAD FAILED. RETRYING...", this.progress, false);
+            var self = this;
+            setTimeout(function() {
+              self.started = false;
+              self.start();
+            }, 1200);
+          }
         }
       };
 
       var Module = {
         files: {
-          "default.fmf": "default.fmf",
-          "nzp/game.pk3": "nzp/game.pk3",
-          "nzp/progs.pk3": "nzp/progs.pk3"
+          "default.fmf": withRev("default.fmf"),
+          "nzp/game.pk3": withRev("nzp/game.pk3"),
+          "nzp/progs.pk3": withRev("nzp/progs.pk3")
+        },
+        locateFile: function(path) {
+          if (path === "ftewebgl.wasm") {
+            return withRev(path);
+          }
+          return path;
         },
         print: function(msg) {
           console.log(msg);
@@ -664,14 +764,9 @@
           statusElement.innerHTML = text;
           statusElement.hidden = text.length === 0;
 
-          if (IntroUI.state === "starting" || IntroUI.state === "loading") {
+          if (BootBridge.started && !IntroUI.handoffDone) {
             IntroUI.setState("loading");
-            IntroUI.setStatus((text || "").toUpperCase(), percent, indeterminate);
-          }
-
-          if (text === "All downloads complete.") {
-            IntroUI.setStatus("ALL DOWNLOADS COMPLETE.", 100, false);
-            IntroUI.markDownloadsDone();
+            IntroUI.setStatus((text || "INITIALIZING ENGINE...").toUpperCase(), typeof percent === "number" ? percent : 100, indeterminate);
           }
         },
         totalDependencies: 0,
@@ -681,18 +776,12 @@
         },
         postRun: [
           function() {
-            if (BootBridge.forceHandoffTimer) {
-              clearTimeout(BootBridge.forceHandoffTimer);
-              BootBridge.forceHandoffTimer = null;
-            }
             IntroUI.markEngineReady();
-            // postRun is the most reliable "engine up" signal in this runtime.
-            // Mark first-frame-ready shortly after to avoid deadlock on sched quirks.
             setTimeout(function() {
-              if (!IntroUI.frameReady) {
-                IntroUI.markFrameReady();
+              if (!IntroUI.handoffDone) {
+                IntroUI.tryHandoff();
               }
-            }, 250);
+            }, 2500);
           }
         ]
       };
@@ -704,14 +793,14 @@
         Module.began = true;
         document.getElementById("dropzone").hidden = true;
         document.getElementById("begin").hidden = true;
-        Module.setStatus("Downloading...");
+        Module.setStatus("Initializing engine...");
 
         var s = document.createElement("script");
-        s.setAttribute("src", "ftewebgl.js");
+        s.setAttribute("src", withRev("ftewebgl.js"));
         s.setAttribute("type", "text/javascript");
         s.setAttribute("charset", "utf-8");
         s.addEventListener("error", function() {
-          alert("Oh noes! we got an error!");
+          alert("Unable to download engine javascript");
           Module.setStatus("Unable to download engine javascript");
         }, false);
         document.head.appendChild(s);
@@ -807,6 +896,7 @@
         }
 
         IntroUI.els.input.value = NameStore.load();
+        BootPreload.start();
         IntroUI.els.enter.addEventListener("click", function() {
           BootBridge.handleEnterAction();
         });
@@ -818,6 +908,7 @@
         });
 
         if (window.location.hash != "") {
+          BootBridge.pendingStart = true;
           requestAnimationFrame(function() {
             setTimeout(function() {
               BootBridge.handleEnterAction();
