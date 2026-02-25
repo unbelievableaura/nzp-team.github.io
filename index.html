@@ -424,6 +424,7 @@
         state: "preloading",
         hidden: false,
         handoffDone: false,
+        handoffInFlight: false,
         engineReady: false,
         engineInitFailed: false,
         els: {},
@@ -502,18 +503,81 @@
           }
         },
         tryHandoff: function() {
-          if (this.handoffDone || !BootBridge.started || !BootPreload.isReady() || !this.engineReady) {
+          if (this.handoffDone || this.handoffInFlight || !BootBridge.started || !BootPreload.isReady() || !this.engineReady) {
             return;
           }
-          this.handoffDone = true;
+          this.handoffInFlight = true;
           this.setState("engine_ready");
           this.setStatus("LAUNCHING...", 100, false);
           var self = this;
-          requestAnimationFrame(function() {
+          var canvas = document.getElementById("canvas");
+          if (canvas) {
+            canvas.hidden = false;
+          }
+
+          function isCanvasNonBlack() {
+            try {
+              if (!canvas) {
+                return false;
+              }
+              var w = canvas.width || canvas.clientWidth || 0;
+              var h = canvas.height || canvas.clientHeight || 0;
+              if (!w || !h) {
+                return false;
+              }
+              var probe = document.createElement("canvas");
+              probe.width = 16;
+              probe.height = 16;
+              var ctx = probe.getContext("2d", { willReadFrequently: true });
+              if (!ctx) {
+                return false;
+              }
+              ctx.drawImage(canvas, 0, 0, 16, 16);
+              var px = ctx.getImageData(0, 0, 16, 16).data;
+              var lit = 0;
+              for (var i = 0; i < px.length; i += 4) {
+                var a = px[i + 3];
+                var rgb = px[i] + px[i + 1] + px[i + 2];
+                if (a > 0 && rgb > 18) {
+                  lit++;
+                  if (lit >= 6) {
+                    return true;
+                  }
+                }
+              }
+              return false;
+            } catch (_e) {
+              return false;
+            }
+          }
+
+          var attempts = 0;
+          function waitForVisibleFrame() {
+            attempts++;
             requestAnimationFrame(function() {
-              self.hide();
+              requestAnimationFrame(function() {
+                if (isCanvasNonBlack()) {
+                  self.handoffDone = true;
+                  self.handoffInFlight = false;
+                  self.hide();
+                  return;
+                }
+                if (attempts < 120) {
+                  waitForVisibleFrame();
+                  return;
+                }
+                // Give clear recovery action instead of dropping to black forever.
+                self.handoffInFlight = false;
+                self.engineInitFailed = true;
+                self.setState("idle");
+                self.setStatus("RENDER STALLED. PRESS ENTER TO RELOAD.", 100, false);
+                if (self.els.enterText) {
+                  renderBitmapText(self.els.enterText, "RELOAD");
+                }
+              });
             });
-          });
+          }
+          waitForVisibleFrame();
         },
         hide: function() {
           if (this.hidden || !this.els.overlay) {
