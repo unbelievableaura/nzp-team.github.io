@@ -260,6 +260,32 @@
         max-width: 920px;
       }
 
+      #intro-links {
+        margin-top: 16px;
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 10px;
+      }
+
+      .intro-link-btn {
+        height: 40px;
+        border: 2px solid #3d424a;
+        background: linear-gradient(180deg, rgba(21, 24, 28, 0.95), rgba(11, 13, 16, 0.95));
+        color: var(--menu-text);
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        transition: border-color 120ms linear, filter 120ms linear, transform 120ms linear;
+      }
+
+      .intro-link-btn:hover,
+      .intro-link-btn:focus-visible {
+        border-color: #b13939;
+        filter: brightness(1.14);
+        transform: translateY(-1px);
+      }
+
       #intro-status-text {
         min-height: 16px;
       }
@@ -401,6 +427,10 @@
           align-items: start;
         }
 
+        #intro-links {
+          grid-template-columns: 1fr;
+        }
+
         #intro-enter-btn {
           width: 100%;
           min-width: 0;
@@ -440,6 +470,12 @@
           <div id="intro-controls">
             <div id="intro-ready" class="bitmap-text bitmap-small" aria-label="PROFILE READY"></div>
             <button type="button" id="intro-enter-btn" aria-label="ENTER"><span id="intro-enter-text" class="bitmap-text bitmap-medium"></span></button>
+          </div>
+
+          <div id="intro-links">
+            <a id="intro-link-pump" class="intro-link-btn" href="https://pump.fun" target="_blank" rel="noopener noreferrer" aria-label="PUMP.FUN"><span id="intro-link-pump-text" class="bitmap-text bitmap-small"></span></a>
+            <a id="intro-link-dex" class="intro-link-btn" href="https://dexscreener.com" target="_blank" rel="noopener noreferrer" aria-label="DEXSCREENER"><span id="intro-link-dex-text" class="bitmap-text bitmap-small"></span></a>
+            <a id="intro-link-community" class="intro-link-btn" href="https://x.com" target="_blank" rel="noopener noreferrer" aria-label="COMMUNITY"><span id="intro-link-community-text" class="bitmap-text bitmap-small"></span></a>
           </div>
 
           <div id="intro-status">
@@ -518,6 +554,9 @@
           this.els.nameShell = document.getElementById("intro-name-shell");
           this.els.ready = document.getElementById("intro-ready");
           this.els.enterText = document.getElementById("intro-enter-text");
+          this.els.linkPump = document.getElementById("intro-link-pump-text");
+          this.els.linkDex = document.getElementById("intro-link-dex-text");
+          this.els.linkCommunity = document.getElementById("intro-link-community-text");
           var ok = !!(this.els.overlay && this.els.input && this.els.enter && this.els.status && this.els.bar && this.els.percent && this.els.shell);
           if (ok) {
             renderBitmapText(this.els.titleMain, "NAZI ZOMBIES");
@@ -525,6 +564,9 @@
             renderBitmapText(this.els.nameLabel, "PLAYER NAME");
             renderBitmapText(this.els.ready, "PROFILE READY");
             renderBitmapText(this.els.enterText, "PRELOADING...");
+            renderBitmapText(this.els.linkPump, "PUMP.FUN");
+            renderBitmapText(this.els.linkDex, "DEXSCREENER");
+            renderBitmapText(this.els.linkCommunity, "COMMUNITY");
             renderBitmapText(this.els.status, "PRELOADING PACKAGES... 0%");
             renderBitmapText(this.els.percent, "0%");
           }
