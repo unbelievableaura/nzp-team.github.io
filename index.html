@@ -138,7 +138,7 @@
         top: 18px;
         display: flex;
         align-items: baseline;
-        gap: 8px;
+        gap: 20px;
       }
 
       #intro-title-main,
@@ -146,19 +146,23 @@
         margin: 0;
       }
 
+      #intro-title-sub {
+        transform: translateY(8px);
+      }
+
       #intro-menu-column {
         position: absolute;
         top: 0;
         left: 0;
-        width: 620px;
-        min-height: 320px;
+        width: 760px;
+        min-height: 360px;
       }
 
       .intro-menu-row {
         position: absolute;
         left: 0;
-        width: 290px;
-        height: 34px;
+        width: 356px;
+        height: 38px;
         margin-top: 0;
         border: 0;
         background: transparent;
@@ -215,7 +219,7 @@
       .intro-row-text {
         position: absolute;
         right: 15px;
-        top: 4px;
+        top: 5px;
         z-index: 1;
       }
 
@@ -226,22 +230,22 @@
       }
 
       #intro-name-row {
-        top: 70px;
+        top: 72px;
       }
 
       #intro-name-label {
         position: absolute;
         right: 15px;
-        top: 4px;
+        top: 5px;
         z-index: 1;
       }
 
       #intro-name-shell {
         position: absolute;
-        left: 314px;
+        left: 380px;
         top: 72px;
-        width: 290px;
-        height: 34px;
+        width: 356px;
+        height: 40px;
         border: 2px solid #313131;
         background: rgba(0, 0, 0, 1);
         z-index: 2;
@@ -255,8 +259,8 @@
         background: transparent;
         color: var(--menu-text);
         font-family: "Lucida Console", "Courier New", monospace;
-        font-size: 22px;
-        line-height: 32px;
+        font-size: 24px;
+        line-height: 36px;
         letter-spacing: 0.25px;
         padding: 0 6px;
       }
@@ -264,9 +268,9 @@
       #intro-name-caret {
         position: absolute;
         left: 6px;
-        top: 5px;
+        top: 6px;
         width: 2px;
-        height: 23px;
+        height: 27px;
         background: #cfd2d7;
         opacity: 0;
         pointer-events: none;
@@ -278,36 +282,36 @@
       }
 
       .intro-row-order-name { top: 72px; }
-      .intro-row-order-enter { top: 116px; }
-      .intro-row-order-pump { top: 160px; }
-      .intro-row-order-dex { top: 204px; }
-      .intro-row-order-community { top: 248px; }
+      .intro-row-order-enter { top: 120px; }
+      .intro-row-order-pump { top: 168px; }
+      .intro-row-order-dex { top: 216px; }
+      .intro-row-order-community { top: 264px; }
 
       #intro-menu-divider {
         position: absolute;
         left: 0;
-        width: 285px;
+        width: 351px;
         height: 2px;
         margin: 0;
         background: var(--menu-line);
       }
 
-      .intro-divider-order-3 { top: 149px; }
+      .intro-divider-order-3 { top: 154px; }
 
       #intro-status-wrap {
         position: absolute;
         left: 0;
         right: 0;
-        bottom: 68px;
+        bottom: 76px;
       }
 
       #intro-status-text {
         text-align: center;
-        min-height: 28px;
+        min-height: 34px;
       }
 
       #intro-progress-shell {
-        margin: 12px auto 0;
+        margin: 14px auto 0;
         width: min(640px, calc(100vw - 40px));
         height: 12px;
         border: 1px solid #464c53;
@@ -332,18 +336,18 @@
       }
 
       #intro-progress-percent {
-        margin-top: 8px;
+        margin-top: 10px;
         text-align: center;
-        min-height: 18px;
+        min-height: 22px;
       }
 
       #intro-description-strip {
         position: absolute;
         left: 0;
         right: 0;
-        bottom: -46px;
+        bottom: -52px;
         text-align: center;
-        min-height: 28px;
+        min-height: 34px;
       }
 
       #intro-cursor {
@@ -376,9 +380,10 @@
 
       .bitmap-text {
         display: inline-flex;
-        flex-wrap: wrap;
+        flex-wrap: nowrap;
         align-items: center;
         gap: 0;
+        white-space: nowrap;
       }
 
       .bitmap-glyph {
@@ -445,11 +450,11 @@
       }
 
       @media (max-width: 900px) {
-        :root { --intro-ui-scale: 0.76; }
+        :root { --intro-ui-scale: 0.72; }
       }
 
       @media (max-width: 640px) {
-        :root { --intro-ui-scale: 0.60; }
+        :root { --intro-ui-scale: 0.56; }
       }
     </style>
   </head>
