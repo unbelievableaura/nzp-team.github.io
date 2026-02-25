@@ -171,6 +171,10 @@
         gap: 16px;
       }
 
+      #intro-name-shell {
+        position: relative;
+      }
+
       #intro-name-label {
         min-height: clamp(16px, 2.1vw, 24px);
       }
@@ -185,11 +189,29 @@
         font-size: clamp(16px, 1.95vw, 32px);
         letter-spacing: 0.4px;
         outline: none;
+        width: 100%;
       }
 
       #intro-name-input:focus {
         border-color: #666d77;
         box-shadow: 0 0 0 1px rgba(73, 73, 73, 0.9);
+      }
+
+      #intro-name-caret {
+        position: absolute;
+        left: 14px;
+        top: 50%;
+        width: 2px;
+        height: 64%;
+        transform: translateY(-50%);
+        background: #cfd2d7;
+        opacity: 0;
+        pointer-events: none;
+      }
+
+      #intro-name-shell.show-select-caret #intro-name-caret {
+        opacity: 1;
+        animation: intro-blink 1s steps(1, end) infinite;
       }
 
       #intro-controls {
@@ -356,6 +378,11 @@
         50% { opacity: 0.9; }
       }
 
+      @keyframes intro-blink {
+        0%, 49% { opacity: 1; }
+        50%, 100% { opacity: 0; }
+      }
+
       @media (max-width: 740px) {
         #intro-panel {
           width: calc(100vw - 16px);
@@ -404,7 +431,10 @@
         <div id="intro-form">
           <div id="intro-name-row">
             <label id="intro-name-label" for="intro-name-input" class="bitmap-text bitmap-medium" aria-label="PLAYER NAME"></label>
-            <input id="intro-name-input" type="text" maxlength="24" autocomplete="name" spellcheck="false" value="Unknown Soldier">
+            <div id="intro-name-shell">
+              <input id="intro-name-input" type="text" maxlength="24" autocomplete="name" spellcheck="false" value="">
+              <span id="intro-name-caret" aria-hidden="true"></span>
+            </div>
           </div>
 
           <div id="intro-controls">
@@ -485,6 +515,7 @@
           this.els.titleMain = document.getElementById("intro-title-main");
           this.els.titleSub = document.getElementById("intro-title-sub");
           this.els.nameLabel = document.getElementById("intro-name-label");
+          this.els.nameShell = document.getElementById("intro-name-shell");
           this.els.ready = document.getElementById("intro-ready");
           this.els.enterText = document.getElementById("intro-enter-text");
           var ok = !!(this.els.overlay && this.els.input && this.els.enter && this.els.status && this.els.bar && this.els.percent && this.els.shell);
@@ -519,6 +550,16 @@
               renderBitmapText(this.els.enterText, "LOADING...");
             }
           }
+          this.refreshNameCaret();
+        },
+        refreshNameCaret: function() {
+          if (!this.els.nameShell || !this.els.input) {
+            return;
+          }
+          var show = this.state === "idle" &&
+            !this.els.input.value.trim().length &&
+            document.activeElement !== this.els.input;
+          this.els.nameShell.classList.toggle("show-select-caret", show);
         },
         setStatus: function(text, percent, indeterminate) {
           if (!this.els.status) {
@@ -640,11 +681,15 @@
         sanitize: function(raw) {
           var value = String(raw || "");
           value = value.replace(/[\u0000-\u001F\u007F"'`\\]/g, "").trim();
-          if (!value.length) {
-            value = "Unknown Soldier";
-          }
           if (value.length > 24) {
             value = value.slice(0, 24);
+          }
+          return value;
+        },
+        sanitizeForLaunch: function(raw) {
+          var value = this.sanitize(raw);
+          if (!value.length) {
+            return "Survivor";
           }
           return value;
         },
@@ -652,12 +697,16 @@
           try {
             return this.sanitize(localStorage.getItem(this.key));
           } catch (_err) {
-            return "Unknown Soldier";
+            return "";
           }
         },
         save: function(name) {
           try {
-            localStorage.setItem(this.key, name);
+            if (name && name.length) {
+              localStorage.setItem(this.key, name);
+            } else {
+              localStorage.removeItem(this.key);
+            }
           } catch (_err) {
           }
         }
@@ -686,10 +735,11 @@
           }
           this.started = true;
           this.pendingStart = false;
-          var name = NameStore.sanitize(IntroUI.els.input.value);
-          IntroUI.els.input.value = name;
-          NameStore.save(name);
-          this.ensureArgs(name);
+          var typedName = NameStore.sanitize(IntroUI.els.input.value);
+          var launchName = NameStore.sanitizeForLaunch(typedName);
+          IntroUI.els.input.value = typedName;
+          NameStore.save(typedName);
+          this.ensureArgs(launchName);
           IntroUI.setState("loading");
           IntroUI.setStatus("INITIALIZING ENGINE...", 100, true);
           begin();
@@ -712,6 +762,9 @@
         onPreloadReady: function() {
           IntroUI.setState("idle");
           IntroUI.setStatus("PACKAGES READY. PRESS ENTER.", 100, false);
+          if (IntroUI.els.input) {
+            IntroUI.refreshNameCaret();
+          }
           if (this.pendingStart) {
             this.startEngineNow();
           }
@@ -1018,12 +1071,22 @@
         IntroUI.els.enter.addEventListener("click", function() {
           BootBridge.handleEnterAction();
         });
+        IntroUI.els.input.addEventListener("input", function() {
+          IntroUI.refreshNameCaret();
+        });
+        IntroUI.els.input.addEventListener("focus", function() {
+          IntroUI.refreshNameCaret();
+        });
+        IntroUI.els.input.addEventListener("blur", function() {
+          IntroUI.refreshNameCaret();
+        });
         IntroUI.els.input.addEventListener("keydown", function(ev) {
           if (ev.key === "Enter") {
             ev.preventDefault();
             BootBridge.handleEnterAction();
           }
         });
+        IntroUI.refreshNameCaret();
 
         if (window.location.hash != "") {
           BootBridge.pendingStart = true;
