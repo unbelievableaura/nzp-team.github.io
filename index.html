@@ -421,7 +421,7 @@
         downloadsDone: false,
         engineReady: false,
         handoffDone: false,
-        engineReadyAt: 0,
+        autoEnterWhenReady: false,
         els: {},
         init: function() {
           this.els.overlay = document.getElementById("intro-overlay");
@@ -453,8 +453,20 @@
           if (this.els.overlay) {
             this.els.overlay.classList.toggle("intro-loading", next === "starting" || next === "loading");
           }
+          if (this.els.input) {
+            this.els.input.disabled = next !== "idle";
+          }
           if (this.els.enter) {
-            this.els.enter.disabled = next !== "idle";
+            this.els.enter.disabled = !(next === "idle" || next === "ready_to_enter");
+          }
+          if (this.els.enterText) {
+            if (next === "ready_to_enter") {
+              renderBitmapText(this.els.enterText, "ENTER GAME");
+            } else if (next === "starting" || next === "loading" || next === "engine_ready") {
+              renderBitmapText(this.els.enterText, "LOADING...");
+            } else {
+              renderBitmapText(this.els.enterText, "ENTER");
+            }
           }
         },
         setStatus: function(text, percent, indeterminate) {
@@ -475,29 +487,24 @@
         },
         markDownloadsDone: function() {
           this.downloadsDone = true;
-          this.attemptHandoff();
+          this.onGateUpdated();
         },
         markEngineReady: function() {
           this.engineReady = true;
-          if (!this.engineReadyAt) {
-            this.engineReadyAt = Date.now();
-          }
-          this.attemptHandoff();
-          var self = this;
-          setTimeout(function() {
-            if (!self.handoffDone && self.engineReady && (Date.now() - self.engineReadyAt) >= 4000) {
-              self.handoff();
-            }
-          }, 4100);
+          this.onGateUpdated();
         },
-        attemptHandoff: function() {
+        onGateUpdated: function() {
           if (this.handoffDone || !this.downloadsDone || !this.engineReady) {
             return;
           }
-          this.handoff();
+          this.setState("ready_to_enter");
+          this.setStatus("READY. PRESS ENTER GAME.", 100, false);
+          if (this.autoEnterWhenReady) {
+            this.handoff();
+          }
         },
         handoff: function() {
-          if (this.handoffDone) {
+          if (this.handoffDone || !this.downloadsDone || !this.engineReady) {
             return;
           }
           this.handoffDone = true;
@@ -564,7 +571,11 @@
           next.push(name);
           Module.arguments = next;
         },
-        startFromIntro: function() {
+        handleEnterAction: function() {
+          if (IntroUI.state === "ready_to_enter") {
+            IntroUI.handoff();
+            return;
+          }
           if (this.started || Module.began) {
             return;
           }
@@ -604,8 +615,8 @@
 
           if (m) {
             text = m[1].trim();
-            var v = parseInt(m[2], 10) * 100;
-            var max = parseInt(m[4], 10) * 100;
+            var v = parseFloat(m[2]);
+            var max = parseFloat(m[4]);
             progressElement.value = v;
             progressElement.max = max;
             progressElement.hidden = false;
@@ -622,7 +633,7 @@
           statusElement.innerHTML = text;
           statusElement.hidden = text.length === 0;
 
-          if (IntroUI.state === "starting" || IntroUI.state === "loading" || IntroUI.state === "engine_ready") {
+          if (IntroUI.state === "starting" || IntroUI.state === "loading") {
             IntroUI.setState("loading");
             IntroUI.setStatus((text || "").toUpperCase(), percent, indeterminate);
           }
@@ -760,19 +771,20 @@
 
         IntroUI.els.input.value = NameStore.load();
         IntroUI.els.enter.addEventListener("click", function() {
-          BootBridge.startFromIntro();
+          BootBridge.handleEnterAction();
         });
         IntroUI.els.input.addEventListener("keydown", function(ev) {
           if (ev.key === "Enter") {
             ev.preventDefault();
-            BootBridge.startFromIntro();
+            BootBridge.handleEnterAction();
           }
         });
 
         if (window.location.hash != "") {
+          IntroUI.autoEnterWhenReady = true;
           requestAnimationFrame(function() {
             setTimeout(function() {
-              BootBridge.startFromIntro();
+              BootBridge.handleEnterAction();
             }, 60);
           });
         }
