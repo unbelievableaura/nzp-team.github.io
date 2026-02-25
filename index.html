@@ -420,6 +420,8 @@
         hidden: false,
         downloadsDone: false,
         frameReady: false,
+        engineReady: false,
+        fallbackHandoffTimer: null,
         handoffDone: false,
         els: {},
         init: function() {
@@ -490,8 +492,30 @@
           this.frameReady = true;
           this.onGateUpdated();
         },
+        markEngineReady: function() {
+          this.engineReady = true;
+          this.onGateUpdated();
+        },
+        scheduleFallbackHandoff: function() {
+          if (this.fallbackHandoffTimer || this.handoffDone) {
+            return;
+          }
+          var self = this;
+          this.fallbackHandoffTimer = setTimeout(function() {
+            if (!self.handoffDone && self.downloadsDone && self.engineReady) {
+              self.setStatus("LAUNCHING...", 100, false);
+              self.handoff();
+            }
+          }, 1800);
+        },
         onGateUpdated: function() {
-          if (this.handoffDone || !this.downloadsDone || !this.frameReady) {
+          if (this.handoffDone || !this.downloadsDone || !this.engineReady) {
+            return;
+          }
+          this.scheduleFallbackHandoff();
+          if (!this.frameReady) {
+            this.setState("engine_ready");
+            this.setStatus("FINALIZING LAUNCH...", 100, false);
             return;
           }
           this.setState("engine_ready");
@@ -502,8 +526,12 @@
           }, 650);
         },
         handoff: function() {
-          if (this.handoffDone || !this.downloadsDone || !this.frameReady) {
+          if (this.handoffDone || !this.downloadsDone || !this.engineReady) {
             return;
+          }
+          if (this.fallbackHandoffTimer) {
+            clearTimeout(this.fallbackHandoffTimer);
+            this.fallbackHandoffTimer = null;
           }
           this.handoffDone = true;
           this.setState("engine_ready");
@@ -649,6 +677,7 @@
               Module.setStatus("Initialisation Failure");
               return;
             }
+            IntroUI.markEngineReady();
             // Only hand off after at least one scheduled frame callback has fired.
             var originalSched = Module.sched;
             var frameSeen = false;
