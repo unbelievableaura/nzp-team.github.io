@@ -14,18 +14,17 @@
     <style>
       :root {
         --menu-text: #d4d5d8;
-        --menu-line: rgba(118, 123, 131, 0.82);
         --menu-red: #a91a1a;
-        --menu-red-dark: #6f1212;
-        --menu-panel-shadow: rgba(0, 0, 0, 0.66);
+        --menu-red-border: #660000;
+        --menu-line: #333;
       }
 
       html,
       body {
         margin: 0;
         padding: 0;
-        height: 100%;
         width: 100%;
+        height: 100%;
         overflow: hidden;
         background: #000;
         color: var(--menu-text);
@@ -62,18 +61,15 @@
         position: fixed;
         inset: 0;
         z-index: 30;
-        display: block;
-        background: #040404;
+        background: #000;
       }
 
       #intro-bg {
         position: absolute;
         inset: 0;
-        background-image:
-          linear-gradient(0deg, rgba(0, 0, 0, 0.64), rgba(0, 0, 0, 0.42)),
-          url("assets/intro/bg.png");
-        background-size: cover;
-        background-position: center;
+        background:
+          linear-gradient(0deg, rgba(0, 0, 0, 0.68), rgba(0, 0, 0, 0.5)),
+          url("assets/intro/bg.png") center/cover no-repeat;
         image-rendering: pixelated;
       }
 
@@ -83,127 +79,183 @@
         inset: 0;
         background: repeating-linear-gradient(
           to bottom,
-          rgba(255, 255, 255, 0.03) 0,
-          rgba(255, 255, 255, 0.03) 1px,
-          rgba(0, 0, 0, 0.0) 2px,
-          rgba(0, 0, 0, 0.0) 4px
+          rgba(255, 255, 255, 0.02) 0,
+          rgba(255, 255, 255, 0.02) 1px,
+          rgba(0, 0, 0, 0) 2px,
+          rgba(0, 0, 0, 0) 4px
         );
       }
 
-      #intro-panel {
+      #intro-top-bar,
+      #intro-bottom-bar {
         position: absolute;
         left: 0;
         right: 0;
-        top: 24px;
-        bottom: 24px;
-        width: min(1040px, calc(100vw - 36px));
-        margin: 0 auto;
-        border-top: 3px solid var(--menu-line);
-        border-bottom: 3px solid var(--menu-line);
-        background: linear-gradient(
-          90deg,
-          rgba(0, 0, 0, 0.74) 0%,
-          rgba(0, 0, 0, 0.55) 52%,
-          rgba(0, 0, 0, 0.35) 100%
-        );
-        box-shadow:
-          inset 0 0 0 2px rgba(0, 0, 0, 0.6),
-          0 0 36px var(--menu-panel-shadow);
-        padding: 26px 24px 28px;
+        height: 55px;
+        background: rgba(0, 0, 0, 0.92);
+        pointer-events: none;
       }
 
-      #intro-panel::after {
+      #intro-top-bar {
+        top: 0;
+      }
+
+      #intro-bottom-bar {
+        bottom: 0;
+      }
+
+      #intro-top-line,
+      #intro-bottom-line {
+        position: absolute;
+        left: 0;
+        right: 0;
+        height: 3px;
+        background: var(--menu-line);
+        pointer-events: none;
+      }
+
+      #intro-top-line {
+        top: 52px;
+      }
+
+      #intro-bottom-line {
+        bottom: 55px;
+      }
+
+      #intro-title-block {
+        position: absolute;
+        left: 6px;
+        top: 18px;
+        display: flex;
+        align-items: baseline;
+        gap: 10px;
+      }
+
+      #intro-title-main,
+      #intro-title-sub {
+        margin: 0;
+      }
+
+      #intro-menu-column {
+        position: absolute;
+        top: 68px;
+        left: 0;
+        width: min(860px, calc(100vw - 12px));
+      }
+
+      .intro-menu-row {
+        position: relative;
+        width: 290px;
+        height: 26px;
+        margin-top: 2px;
+        border: 0;
+        background: transparent;
+        padding: 0;
+        display: block;
+        text-decoration: none;
+        cursor: pointer;
+      }
+
+      .intro-menu-row:focus-visible {
+        outline: none;
+      }
+
+      .intro-menu-row::before {
         content: "";
         position: absolute;
         inset: 0;
-        pointer-events: none;
-        background: linear-gradient(
-          180deg,
-          rgba(255, 255, 255, 0.03) 0%,
-          rgba(255, 255, 255, 0) 15%,
-          rgba(255, 255, 255, 0) 85%,
-          rgba(255, 255, 255, 0.02) 100%
-        );
+        background: transparent;
       }
 
-      .intro-row-line {
-        width: 100%;
-        height: 3px;
-        background: url("assets/intro/line.png") center/contain repeat-x;
-        opacity: 0.9;
+      .intro-menu-row::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        border-top: 2px solid transparent;
+        border-bottom: 2px solid transparent;
+        border-right: 2px solid transparent;
       }
 
-      #intro-logo {
-        width: clamp(96px, 12vw, 140px);
-        image-rendering: pixelated;
-        filter: drop-shadow(0 0 8px rgba(0, 0, 0, 0.85));
+      .intro-menu-row.is-active::before,
+      .intro-menu-row:hover::before,
+      .intro-menu-row:focus-visible::before {
+        background: rgba(0, 0, 0, 0.9);
       }
 
-      #intro-heading {
-        margin-top: 10px;
-        display: flex;
-        align-items: flex-end;
-        gap: 14px;
-        flex-wrap: wrap;
+      .intro-menu-row.is-active::after,
+      .intro-menu-row:hover::after,
+      .intro-menu-row:focus-visible::after {
+        border-top-color: var(--menu-red-border);
+        border-bottom-color: var(--menu-red-border);
+        border-right-color: var(--menu-red-border);
       }
 
-      #intro-title-main {
-        margin: 0;
-        min-height: clamp(32px, 6.2vw, 60px);
+      .intro-menu-row.is-disabled {
+        opacity: 0.55;
+        cursor: default;
       }
 
-      #intro-title-sub {
-        margin-top: 0;
-        min-height: clamp(14px, 2.3vw, 22px);
+      .intro-menu-row.is-disabled::before,
+      .intro-menu-row.is-disabled::after {
+        display: none;
       }
 
-      #intro-form {
-        margin-top: 22px;
-        width: min(900px, 100%);
-        border-top: 2px solid rgba(66, 66, 66, 0.85);
-        padding-top: 20px;
+      .intro-row-text {
+        position: absolute;
+        right: 15px;
+        top: 5px;
+        z-index: 1;
+      }
+
+      .intro-menu-row.is-active .intro-row-text .bitmap-glyph,
+      .intro-menu-row:hover .intro-row-text .bitmap-glyph,
+      .intro-menu-row:focus-visible .intro-row-text .bitmap-glyph {
+        filter: hue-rotate(-28deg) saturate(190%) brightness(92%);
       }
 
       #intro-name-row {
-        display: grid;
-        grid-template-columns: minmax(160px, 34%) 1fr;
-        align-items: center;
-        gap: 16px;
-      }
-
-      #intro-name-shell {
-        position: relative;
+        width: min(860px, calc(100vw - 12px));
+        height: 34px;
+        margin-top: 0;
       }
 
       #intro-name-label {
-        min-height: clamp(16px, 2.1vw, 24px);
+        position: absolute;
+        left: 12px;
+        top: 8px;
+        z-index: 1;
+      }
+
+      #intro-name-shell {
+        position: absolute;
+        left: 285px;
+        right: 10px;
+        top: 5px;
+        height: 22px;
+        border: 2px solid #313131;
+        background: rgba(0, 0, 0, 0.94);
+        z-index: 2;
       }
 
       #intro-name-input {
-        height: clamp(40px, 5.2vw, 58px);
-        border: 2px solid #2e3138;
-        background: rgba(0, 0, 0, 0.78);
-        color: var(--menu-text);
-        padding: 0 12px;
-        font-family: "Lucida Console", "Courier New", monospace;
-        font-size: clamp(16px, 1.95vw, 32px);
-        letter-spacing: 0.4px;
-        outline: none;
         width: 100%;
-      }
-
-      #intro-name-input:focus {
-        border-color: #666d77;
-        box-shadow: 0 0 0 1px rgba(73, 73, 73, 0.9);
+        height: 100%;
+        border: 0;
+        outline: none;
+        background: transparent;
+        color: var(--menu-text);
+        font-family: "Lucida Console", "Courier New", monospace;
+        font-size: 14px;
+        letter-spacing: 0.25px;
+        padding: 0 6px;
       }
 
       #intro-name-caret {
         position: absolute;
-        left: 14px;
-        top: 50%;
+        left: 6px;
+        top: 3px;
         width: 2px;
-        height: 64%;
-        transform: translateY(-50%);
+        height: 14px;
         background: #cfd2d7;
         opacity: 0;
         pointer-events: none;
@@ -214,85 +266,37 @@
         animation: intro-blink 1s steps(1, end) infinite;
       }
 
-      #intro-controls {
-        margin-top: 16px;
-        display: grid;
-        grid-template-columns: 1fr auto;
-        align-items: center;
-        gap: 16px;
+      #intro-enter-btn,
+      #intro-link-pump,
+      #intro-link-dex,
+      #intro-link-community {
+        width: 290px;
       }
 
-      #intro-ready {
-        min-height: 16px;
+      #intro-menu-divider {
+        width: 285px;
+        height: 2px;
+        margin-top: 6px;
+        margin-bottom: 2px;
+        background: var(--menu-line);
       }
 
-      #intro-enter-btn {
-        min-width: 230px;
-        height: 48px;
-        border: 2px solid rgba(118, 26, 26, 0.95);
-        border-right-width: 3px;
-        background:
-          linear-gradient(180deg, rgba(132, 24, 24, 0.95), rgba(80, 12, 12, 0.95)),
-          rgba(80, 12, 12, 0.95);
-        color: #ece9e9;
-        font-family: inherit;
-        cursor: pointer;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        padding: 0 14px;
-        transition: filter 120ms linear, border-color 120ms linear;
-      }
-
-      #intro-enter-btn:hover:not(:disabled),
-      #intro-enter-btn:focus-visible:not(:disabled) {
-        border-color: #c23a3a;
-        filter: brightness(1.14);
-      }
-
-      #intro-enter-btn:disabled {
-        opacity: 0.55;
-        cursor: default;
-      }
-
-      #intro-status {
-        margin-top: 18px;
-        max-width: 920px;
-      }
-
-      #intro-links {
-        margin-top: 16px;
-        display: grid;
-        grid-template-columns: repeat(3, minmax(0, 1fr));
-        gap: 10px;
-      }
-
-      .intro-link-btn {
-        height: 40px;
-        border: 2px solid #3d424a;
-        background: linear-gradient(180deg, rgba(21, 24, 28, 0.95), rgba(11, 13, 16, 0.95));
-        color: var(--menu-text);
-        text-decoration: none;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        transition: border-color 120ms linear, filter 120ms linear, transform 120ms linear;
-      }
-
-      .intro-link-btn:hover,
-      .intro-link-btn:focus-visible {
-        border-color: #b13939;
-        filter: brightness(1.14);
-        transform: translateY(-1px);
+      #intro-status-wrap {
+        position: absolute;
+        left: 0;
+        right: 0;
+        bottom: 58px;
       }
 
       #intro-status-text {
-        min-height: 16px;
+        text-align: center;
+        min-height: 18px;
       }
 
       #intro-progress-shell {
-        margin-top: 8px;
-        height: 14px;
+        margin: 7px auto 0;
+        width: min(640px, calc(100vw - 36px));
+        height: 10px;
         border: 1px solid #464c53;
         background: rgba(3, 3, 3, 0.9);
         position: relative;
@@ -305,7 +309,7 @@
         top: 0;
         height: 100%;
         width: 0%;
-        background: linear-gradient(90deg, var(--menu-red-dark), var(--menu-red));
+        background: linear-gradient(90deg, #6f1212, var(--menu-red));
         transition: width 110ms linear;
       }
 
@@ -315,26 +319,36 @@
       }
 
       #intro-progress-percent {
-        margin-top: 6px;
-        text-align: right;
+        margin-top: 4px;
+        text-align: center;
         min-height: 12px;
+      }
+
+      #intro-description-strip {
+        position: absolute;
+        left: 0;
+        right: 0;
+        bottom: -42px;
+        text-align: center;
+        min-height: 18px;
       }
 
       #intro-cursor {
         position: absolute;
-        right: 20px;
-        bottom: 16px;
+        right: 8px;
+        bottom: 64px;
         width: 42px;
         height: 42px;
         background: url("assets/intro/hilight.png") center/contain no-repeat;
+        image-rendering: pixelated;
         opacity: 0.75;
         animation: intro-pulse 1.8s ease-in-out infinite;
+        pointer-events: none;
       }
 
       #intro-overlay.intro-loading #intro-name-row,
-      #intro-overlay.intro-loading #intro-controls {
-        opacity: 0.56;
-        pointer-events: none;
+      #intro-overlay.intro-loading #intro-enter-btn {
+        opacity: 0.64;
       }
 
       #intro-overlay.intro-handoff {
@@ -409,39 +423,60 @@
         50%, 100% { opacity: 0; }
       }
 
-      @media (max-width: 740px) {
-        #intro-panel {
-          width: calc(100vw - 16px);
-          top: 8px;
-          bottom: 8px;
-          padding: 14px 10px 16px;
+      @media (max-width: 900px) {
+        #intro-title-block {
+          gap: 8px;
+          top: 20px;
         }
 
-        #intro-name-row {
-          grid-template-columns: 1fr;
-          gap: 6px;
-        }
-
-        #intro-controls {
-          grid-template-columns: 1fr;
-          align-items: start;
-        }
-
-        #intro-links {
-          grid-template-columns: 1fr;
-        }
-
-        #intro-enter-btn {
-          width: 100%;
-          min-width: 0;
+        #intro-name-shell {
+          left: 225px;
         }
 
         .bitmap-large {
-          --scale: 2.0;
+          --scale: 2.1;
         }
 
         .bitmap-medium {
           --scale: 1.35;
+        }
+      }
+
+      @media (max-width: 640px) {
+        #intro-menu-column {
+          width: calc(100vw - 10px);
+        }
+
+        #intro-name-row,
+        #intro-enter-btn,
+        #intro-link-pump,
+        #intro-link-dex,
+        #intro-link-community {
+          width: calc(100vw - 12px);
+        }
+
+        #intro-name-shell {
+          left: 152px;
+        }
+
+        #intro-menu-divider {
+          width: calc(100vw - 16px);
+        }
+
+        #intro-progress-shell {
+          width: calc(100vw - 20px);
+        }
+
+        #intro-description-strip {
+          bottom: -40px;
+        }
+
+        .bitmap-large {
+          --scale: 1.7;
+        }
+
+        .bitmap-small {
+          --scale: 1.1;
         }
       }
     </style>
@@ -449,46 +484,52 @@
   <body ondrop="gotdrop(event);" ondragover="event.preventDefault()">
     <div id="intro-overlay" role="dialog" aria-label="NZP Intro">
       <div id="intro-bg" aria-hidden="true"></div>
-      <section id="intro-panel">
-        <div class="intro-row-line"></div>
-        <img id="intro-logo" src="assets/intro/logo.png" alt="NZP logo">
-        <div id="intro-heading">
-          <h1 id="intro-title-main" class="bitmap-text bitmap-large" aria-label="NAZI ZOMBIES"></h1>
-          <div id="intro-title-sub" class="bitmap-text bitmap-medium bitmap-red" aria-label="ON SOLANA"></div>
-        </div>
-        <div class="intro-row-line"></div>
+      <div id="intro-top-bar" aria-hidden="true"></div>
+      <div id="intro-top-line" aria-hidden="true"></div>
+      <div id="intro-bottom-bar" aria-hidden="true"></div>
+      <div id="intro-bottom-line" aria-hidden="true"></div>
 
-        <div id="intro-form">
-          <div id="intro-name-row">
-            <label id="intro-name-label" for="intro-name-input" class="bitmap-text bitmap-medium" aria-label="PLAYER NAME"></label>
-            <div id="intro-name-shell">
-              <input id="intro-name-input" type="text" maxlength="24" autocomplete="name" spellcheck="false" value="">
-              <span id="intro-name-caret" aria-hidden="true"></span>
-            </div>
-          </div>
+      <div id="intro-title-block">
+        <h1 id="intro-title-main" class="bitmap-text bitmap-large" aria-label="NAZI ZOMBIES"></h1>
+        <div id="intro-title-sub" class="bitmap-text bitmap-medium bitmap-red" aria-label="ON SOLANA"></div>
+      </div>
 
-          <div id="intro-controls">
-            <div id="intro-ready" class="bitmap-text bitmap-small" aria-label="PROFILE READY"></div>
-            <button type="button" id="intro-enter-btn" aria-label="ENTER"><span id="intro-enter-text" class="bitmap-text bitmap-medium"></span></button>
-          </div>
-
-          <div id="intro-links">
-            <a id="intro-link-pump" class="intro-link-btn" href="https://pump.fun" target="_blank" rel="noopener noreferrer" aria-label="PUMP.FUN"><span id="intro-link-pump-text" class="bitmap-text bitmap-small"></span></a>
-            <a id="intro-link-dex" class="intro-link-btn" href="https://dexscreener.com" target="_blank" rel="noopener noreferrer" aria-label="DEXSCREENER"><span id="intro-link-dex-text" class="bitmap-text bitmap-small"></span></a>
-            <a id="intro-link-community" class="intro-link-btn" href="https://x.com" target="_blank" rel="noopener noreferrer" aria-label="COMMUNITY"><span id="intro-link-community-text" class="bitmap-text bitmap-small"></span></a>
-          </div>
-
-          <div id="intro-status">
-            <div id="intro-status-text" class="bitmap-text bitmap-small" aria-live="polite"></div>
-            <div id="intro-progress-shell" aria-hidden="true">
-              <div id="intro-progress-fill"></div>
-            </div>
-            <div id="intro-progress-percent" class="bitmap-text bitmap-small" aria-live="polite"></div>
+      <div id="intro-menu-column">
+        <div id="intro-name-row" class="intro-menu-row" data-row-key="name" tabindex="0" role="button" aria-label="PLAYER NAME">
+          <span id="intro-name-label" class="bitmap-text bitmap-medium"></span>
+          <div id="intro-name-shell">
+            <input id="intro-name-input" type="text" maxlength="24" autocomplete="name" spellcheck="false" value="">
+            <span id="intro-name-caret" aria-hidden="true"></span>
           </div>
         </div>
 
-        <div id="intro-cursor" aria-hidden="true"></div>
-      </section>
+        <button type="button" id="intro-enter-btn" class="intro-menu-row" data-row-key="enter" aria-label="ENTER">
+          <span id="intro-enter-text" class="intro-row-text bitmap-text bitmap-medium"></span>
+        </button>
+
+        <div id="intro-menu-divider"></div>
+
+        <a id="intro-link-pump" class="intro-menu-row" data-row-key="pump" href="https://pump.fun" target="_blank" rel="noopener noreferrer" aria-label="PUMP.FUN">
+          <span id="intro-link-pump-text" class="intro-row-text bitmap-text bitmap-medium"></span>
+        </a>
+        <a id="intro-link-dex" class="intro-menu-row" data-row-key="dex" href="https://dexscreener.com" target="_blank" rel="noopener noreferrer" aria-label="DEXSCREENER">
+          <span id="intro-link-dex-text" class="intro-row-text bitmap-text bitmap-medium"></span>
+        </a>
+        <a id="intro-link-community" class="intro-menu-row" data-row-key="community" href="https://x.com" target="_blank" rel="noopener noreferrer" aria-label="COMMUNITY">
+          <span id="intro-link-community-text" class="intro-row-text bitmap-text bitmap-medium"></span>
+        </a>
+      </div>
+
+      <div id="intro-status-wrap">
+        <div id="intro-status-text" class="bitmap-text bitmap-small" aria-live="polite"></div>
+        <div id="intro-progress-shell" aria-hidden="true">
+          <div id="intro-progress-fill"></div>
+        </div>
+        <div id="intro-progress-percent" class="bitmap-text bitmap-small" aria-live="polite"></div>
+        <div id="intro-description-strip" class="bitmap-text bitmap-medium" aria-live="polite"></div>
+      </div>
+
+      <div id="intro-cursor" aria-hidden="true"></div>
     </div>
 
     <div class="emscripten legacy-hidden" id="status">Please allow/unblock our javascript to play.</div>
@@ -539,38 +580,166 @@
         handoffInFlight: false,
         engineReady: false,
         engineInitFailed: false,
+        keyboardMode: false,
+        hoverRow: "",
+        focusRow: "",
+        lastStatusText: "PRELOADING PACKAGES... 0%",
+        rowOrder: ["name", "enter", "pump", "dex", "community"],
+        rowDescriptions: {
+          name: "Name that appears in-game and on the Scoreboard.",
+          enter: "Launch into Nazi Zombies: Portable.",
+          pump: "https://pump.fun",
+          dex: "https://dexscreener.com",
+          community: "https://x.com"
+        },
+        rowEls: {},
         els: {},
         init: function() {
           this.els.overlay = document.getElementById("intro-overlay");
           this.els.input = document.getElementById("intro-name-input");
           this.els.enter = document.getElementById("intro-enter-btn");
           this.els.status = document.getElementById("intro-status-text");
+          this.els.description = document.getElementById("intro-description-strip");
           this.els.bar = document.getElementById("intro-progress-fill");
           this.els.percent = document.getElementById("intro-progress-percent");
           this.els.shell = document.getElementById("intro-progress-shell");
           this.els.titleMain = document.getElementById("intro-title-main");
           this.els.titleSub = document.getElementById("intro-title-sub");
+          this.els.nameRow = document.getElementById("intro-name-row");
           this.els.nameLabel = document.getElementById("intro-name-label");
           this.els.nameShell = document.getElementById("intro-name-shell");
-          this.els.ready = document.getElementById("intro-ready");
           this.els.enterText = document.getElementById("intro-enter-text");
+          this.els.linkPumpRow = document.getElementById("intro-link-pump");
+          this.els.linkDexRow = document.getElementById("intro-link-dex");
+          this.els.linkCommunityRow = document.getElementById("intro-link-community");
           this.els.linkPump = document.getElementById("intro-link-pump-text");
           this.els.linkDex = document.getElementById("intro-link-dex-text");
           this.els.linkCommunity = document.getElementById("intro-link-community-text");
-          var ok = !!(this.els.overlay && this.els.input && this.els.enter && this.els.status && this.els.bar && this.els.percent && this.els.shell);
-          if (ok) {
-            renderBitmapText(this.els.titleMain, "NAZI ZOMBIES");
-            renderBitmapText(this.els.titleSub, "ON SOLANA");
-            renderBitmapText(this.els.nameLabel, "PLAYER NAME");
-            renderBitmapText(this.els.ready, "PROFILE READY");
-            renderBitmapText(this.els.enterText, "PRELOADING...");
-            renderBitmapText(this.els.linkPump, "PUMP.FUN");
-            renderBitmapText(this.els.linkDex, "DEXSCREENER");
-            renderBitmapText(this.els.linkCommunity, "COMMUNITY");
-            renderBitmapText(this.els.status, "PRELOADING PACKAGES... 0%");
-            renderBitmapText(this.els.percent, "0%");
+
+          var ok = !!(
+            this.els.overlay &&
+            this.els.input &&
+            this.els.enter &&
+            this.els.status &&
+            this.els.description &&
+            this.els.bar &&
+            this.els.percent &&
+            this.els.shell &&
+            this.els.nameRow &&
+            this.els.linkPumpRow &&
+            this.els.linkDexRow &&
+            this.els.linkCommunityRow
+          );
+          if (!ok) {
+            return false;
           }
-          return ok;
+
+          this.rowEls = {
+            name: this.els.nameRow,
+            enter: this.els.enter,
+            pump: this.els.linkPumpRow,
+            dex: this.els.linkDexRow,
+            community: this.els.linkCommunityRow
+          };
+
+          renderBitmapText(this.els.titleMain, "NAZI ZOMBIES");
+          renderBitmapText(this.els.titleSub, "ON SOLANA");
+          renderBitmapText(this.els.nameLabel, "PLAYER NAME");
+          renderBitmapText(this.els.enterText, "PRELOADING...");
+          renderBitmapText(this.els.linkPump, "PUMP.FUN");
+          renderBitmapText(this.els.linkDex, "DEXSCREENER");
+          renderBitmapText(this.els.linkCommunity, "COMMUNITY");
+          renderBitmapText(this.els.status, this.lastStatusText);
+          renderBitmapText(this.els.percent, "0%");
+          this.refreshDescription();
+          this.bindRowEvents();
+          return true;
+        },
+        bindRowEvents: function() {
+          var self = this;
+          Object.keys(this.rowEls).forEach(function(key) {
+            var row = self.rowEls[key];
+            if (!row) {
+              return;
+            }
+            row.addEventListener("mouseenter", function() {
+              self.keyboardMode = false;
+              self.hoverRow = key;
+              self.updateRowVisuals();
+              self.refreshDescription();
+            });
+            row.addEventListener("mouseleave", function() {
+              if (self.hoverRow === key) {
+                self.hoverRow = "";
+                self.updateRowVisuals();
+                self.refreshDescription();
+              }
+            });
+            row.addEventListener("focus", function() {
+              self.focusRow = key;
+              self.updateRowVisuals();
+              self.refreshDescription();
+            });
+            row.addEventListener("blur", function() {
+              if (!self.hoverRow && document.activeElement !== self.els.input) {
+                self.focusRow = "";
+              }
+              self.updateRowVisuals();
+              self.refreshDescription();
+            });
+          });
+
+          this.els.nameRow.addEventListener("click", function() {
+            self.keyboardMode = false;
+            if (self.isRowEnabled("name")) {
+              self.els.input.focus();
+            }
+          });
+        },
+        isRowEnabled: function(key) {
+          if (key === "name" || key === "enter") {
+            return this.state === "idle";
+          }
+          return true;
+        },
+        updateRowVisuals: function() {
+          var activeKey = this.hoverRow || "";
+          if (!activeKey) {
+            if (document.activeElement === this.els.input) {
+              activeKey = "name";
+            } else if (this.keyboardMode && this.focusRow) {
+              activeKey = this.focusRow;
+            }
+          }
+          var self = this;
+          Object.keys(this.rowEls).forEach(function(key) {
+            var row = self.rowEls[key];
+            if (!row) {
+              return;
+            }
+            row.classList.toggle("is-active", key === activeKey);
+            row.classList.toggle("is-disabled", !self.isRowEnabled(key));
+          });
+        },
+        getCurrentDescription: function() {
+          var source = "";
+          if (this.hoverRow) {
+            source = this.hoverRow;
+          } else if (document.activeElement === this.els.input) {
+            source = "name";
+          } else if (this.keyboardMode && this.focusRow) {
+            source = this.focusRow;
+          }
+          if (source && this.rowDescriptions[source]) {
+            return this.rowDescriptions[source];
+          }
+          return this.lastStatusText;
+        },
+        refreshDescription: function() {
+          if (!this.els.description) {
+            return;
+          }
+          renderBitmapText(this.els.description, this.getCurrentDescription());
         },
         setState: function(next) {
           this.state = next;
@@ -585,7 +754,7 @@
           }
           if (this.els.enterText) {
             if (next === "idle") {
-              renderBitmapText(this.els.enterText, "ENTER");
+              renderBitmapText(this.els.enterText, this.engineInitFailed ? "RELOAD" : "ENTER");
             } else if (next === "engine_ready") {
               renderBitmapText(this.els.enterText, "LAUNCHING...");
             } else {
@@ -593,6 +762,82 @@
             }
           }
           this.refreshNameCaret();
+          this.updateRowVisuals();
+          this.refreshDescription();
+        },
+        moveFocus: function(delta) {
+          this.keyboardMode = true;
+          var startIndex = this.rowOrder.indexOf(this.focusRow);
+          if (startIndex < 0) {
+            startIndex = delta > 0 ? -1 : 0;
+          }
+          for (var n = 0; n < this.rowOrder.length; n++) {
+            startIndex = (startIndex + delta + this.rowOrder.length) % this.rowOrder.length;
+            var key = this.rowOrder[startIndex];
+            if (!this.isRowEnabled(key)) {
+              continue;
+            }
+            this.focusRow = key;
+            this.hoverRow = "";
+            this.updateRowVisuals();
+            this.refreshDescription();
+            if (key === "name") {
+              try {
+                this.els.nameRow.focus({ preventScroll: true });
+              } catch (_err) {
+                this.els.nameRow.focus();
+              }
+            } else {
+              try {
+                this.rowEls[key].focus({ preventScroll: true });
+              } catch (_err2) {
+                this.rowEls[key].focus();
+              }
+            }
+            return;
+          }
+        },
+        activateFocused: function() {
+          var key = this.focusRow;
+          if (!key || !this.isRowEnabled(key)) {
+            return;
+          }
+          if (key === "name") {
+            this.els.input.focus();
+            return;
+          }
+          if (key === "enter") {
+            BootBridge.handleEnterAction();
+            return;
+          }
+          var row = this.rowEls[key];
+          if (row && typeof row.click === "function") {
+            row.click();
+          }
+        },
+        handleGlobalKeydown: function(ev) {
+          if (ev.altKey || ev.ctrlKey || ev.metaKey) {
+            return false;
+          }
+          if (document.activeElement === this.els.input) {
+            return false;
+          }
+          if (ev.key === "ArrowDown") {
+            ev.preventDefault();
+            this.moveFocus(1);
+            return true;
+          }
+          if (ev.key === "ArrowUp") {
+            ev.preventDefault();
+            this.moveFocus(-1);
+            return true;
+          }
+          if (ev.key === "Enter" && this.keyboardMode) {
+            ev.preventDefault();
+            this.activateFocused();
+            return true;
+          }
+          return false;
         },
         refreshNameCaret: function() {
           if (!this.els.nameShell || !this.els.input) {
@@ -607,7 +852,9 @@
           if (!this.els.status) {
             return;
           }
-          renderBitmapText(this.els.status, text || "");
+          this.lastStatusText = text || "";
+          renderBitmapText(this.els.status, this.lastStatusText);
+          this.refreshDescription();
           if (indeterminate) {
             this.els.shell.classList.add("indeterminate");
           } else {
@@ -627,9 +874,6 @@
           this.engineInitFailed = true;
           this.setState("idle");
           this.setStatus("ENGINE INIT FAILED. PRESS ENTER TO RELOAD.", 100, false);
-          if (this.els.enterText) {
-            renderBitmapText(this.els.enterText, "RELOAD");
-          }
         },
         tryHandoff: function() {
           if (this.handoffDone || this.handoffInFlight || !BootBridge.started || !BootPreload.isReady() || !this.engineReady) {
@@ -695,14 +939,10 @@
                   waitForVisibleFrame();
                   return;
                 }
-                // Give clear recovery action instead of dropping to black forever.
                 self.handoffInFlight = false;
                 self.engineInitFailed = true;
                 self.setState("idle");
                 self.setStatus("RENDER STALLED. PRESS ENTER TO RELOAD.", 100, false);
-                if (self.els.enterText) {
-                  renderBitmapText(self.els.enterText, "RELOAD");
-                }
               });
             });
           }
@@ -1128,7 +1368,12 @@
             BootBridge.handleEnterAction();
           }
         });
+        document.addEventListener("keydown", function(ev) {
+          IntroUI.handleGlobalKeydown(ev);
+        });
         IntroUI.refreshNameCaret();
+        IntroUI.refreshDescription();
+        IntroUI.updateRowVisuals();
 
         if (window.location.hash != "") {
           BootBridge.pendingStart = true;
