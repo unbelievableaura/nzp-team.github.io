@@ -17,6 +17,7 @@
         --menu-red: #a91a1a;
         --menu-red-border: #660000;
         --menu-line: #333;
+        --intro-ui-scale: 1;
       }
 
       html,
@@ -122,13 +123,22 @@
         bottom: 55px;
       }
 
+      #intro-hud {
+        position: absolute;
+        inset: 0;
+        transform-origin: top left;
+        transform: scale(var(--intro-ui-scale));
+        width: calc(100% / var(--intro-ui-scale));
+        height: calc(100% / var(--intro-ui-scale));
+      }
+
       #intro-title-block {
         position: absolute;
-        left: 20px;
-        top: 12px;
+        left: 6px;
+        top: 18px;
         display: flex;
         align-items: baseline;
-        gap: 16px;
+        gap: 8px;
       }
 
       #intro-title-main,
@@ -138,16 +148,18 @@
 
       #intro-menu-column {
         position: absolute;
-        top: 92px;
-        left: 18px;
-        width: min(980px, calc(100vw - 36px));
+        top: 0;
+        left: 0;
+        width: 620px;
+        min-height: 215px;
       }
 
       .intro-menu-row {
-        position: relative;
-        width: 360px;
-        height: 34px;
-        margin-top: 5px;
+        position: absolute;
+        left: 0;
+        width: 290px;
+        height: 22px;
+        margin-top: 0;
         border: 0;
         background: transparent;
         padding: 0;
@@ -202,8 +214,8 @@
 
       .intro-row-text {
         position: absolute;
-        right: 20px;
-        top: 7px;
+        right: 15px;
+        top: 3px;
         z-index: 1;
       }
 
@@ -214,26 +226,24 @@
       }
 
       #intro-name-row {
-        width: min(980px, calc(100vw - 36px));
-        height: 44px;
-        margin-top: 0;
+        top: 70px;
       }
 
       #intro-name-label {
         position: absolute;
-        left: 14px;
-        top: 11px;
+        right: 15px;
+        top: 3px;
         z-index: 1;
       }
 
       #intro-name-shell {
         position: absolute;
-        left: 350px;
-        right: 16px;
-        top: 7px;
-        height: 28px;
+        left: 314px;
+        top: 70px;
+        width: 290px;
+        height: 22px;
         border: 2px solid #313131;
-        background: rgba(0, 0, 0, 0.94);
+        background: rgba(0, 0, 0, 1);
         z-index: 2;
       }
 
@@ -245,17 +255,17 @@
         background: transparent;
         color: var(--menu-text);
         font-family: "Lucida Console", "Courier New", monospace;
-        font-size: 18px;
+        font-size: 14px;
         letter-spacing: 0.25px;
-        padding: 0 8px;
+        padding: 0 6px;
       }
 
       #intro-name-caret {
         position: absolute;
         left: 6px;
-        top: 5px;
+        top: 3px;
         width: 2px;
-        height: 18px;
+        height: 14px;
         background: #cfd2d7;
         opacity: 0;
         pointer-events: none;
@@ -266,39 +276,39 @@
         animation: intro-blink 1s steps(1, end) infinite;
       }
 
-      #intro-enter-btn,
-      #intro-link-pump,
-      #intro-link-dex,
-      #intro-link-community {
-        width: 360px;
-      }
+      .intro-row-order-name { top: 70px; }
+      .intro-row-order-enter { top: 101px; }
+      .intro-row-order-pump { top: 126px; }
+      .intro-row-order-dex { top: 151px; }
+      .intro-row-order-community { top: 176px; }
 
       #intro-menu-divider {
-        width: 352px;
+        position: absolute;
+        left: 0;
+        width: 285px;
         height: 2px;
-        margin-top: 10px;
-        margin-bottom: 4px;
+        margin: 0;
         background: var(--menu-line);
       }
+
+      .intro-divider-order-3 { top: 120px; }
 
       #intro-status-wrap {
         position: absolute;
         left: 0;
         right: 0;
-        bottom: 72px;
+        bottom: 58px;
       }
 
       #intro-status-text {
-        display: flex;
-        justify-content: center;
-        align-items: center;
+        text-align: center;
         min-height: 18px;
       }
 
       #intro-progress-shell {
-        margin: 9px auto 0;
-        width: min(760px, calc(100vw - 44px));
-        height: 12px;
+        margin: 7px auto 0;
+        width: min(640px, calc(100vw - 40px));
+        height: 10px;
         border: 1px solid #464c53;
         background: rgba(3, 3, 3, 0.9);
         position: relative;
@@ -321,10 +331,8 @@
       }
 
       #intro-progress-percent {
-        margin-top: 7px;
-        display: flex;
-        justify-content: center;
-        align-items: center;
+        margin-top: 4px;
+        text-align: center;
         min-height: 12px;
       }
 
@@ -332,19 +340,17 @@
         position: absolute;
         left: 0;
         right: 0;
-        bottom: -50px;
-        display: flex;
-        justify-content: center;
-        align-items: center;
+        bottom: -30px;
+        text-align: center;
         min-height: 18px;
       }
 
       #intro-cursor {
         position: absolute;
-        right: 16px;
-        bottom: 70px;
-        width: 52px;
-        height: 52px;
+        right: 8px;
+        bottom: 64px;
+        width: 42px;
+        height: 42px;
         background: url("assets/intro/hilight.png") center/contain no-repeat;
         image-rendering: pixelated;
         opacity: 0.75;
@@ -354,6 +360,10 @@
 
       #intro-overlay.intro-loading #intro-name-row,
       #intro-overlay.intro-loading #intro-enter-btn {
+        opacity: 0.64;
+      }
+
+      #intro-overlay.intro-loading #intro-name-shell {
         opacity: 0.64;
       }
 
@@ -391,15 +401,19 @@
       }
 
       .bitmap-small {
-        --scale: 1.45;
+        --scale: 1.5;
       }
 
       .bitmap-medium {
-        --scale: 2.05;
+        --scale: 1.75;
       }
 
       .bitmap-large {
-        --scale: 3.25;
+        --scale: 3.5;
+      }
+
+      .bitmap-supersmall {
+        --scale: 1.25;
       }
 
       .legacy-hidden {
@@ -430,115 +444,11 @@
       }
 
       @media (max-width: 900px) {
-        #intro-title-block {
-          left: 14px;
-          top: 14px;
-          gap: 10px;
-        }
-
-        #intro-menu-column {
-          left: 10px;
-          width: calc(100vw - 20px);
-          top: 88px;
-        }
-
-        .intro-menu-row,
-        #intro-enter-btn,
-        #intro-link-pump,
-        #intro-link-dex,
-        #intro-link-community {
-          width: 320px;
-          height: 32px;
-        }
-
-        .intro-row-text {
-          top: 6px;
-          right: 16px;
-        }
-
-        #intro-name-shell {
-          left: 290px;
-          height: 24px;
-          top: 5px;
-          right: 12px;
-        }
-
-        #intro-name-input {
-          font-size: 16px;
-        }
-
-        #intro-menu-divider {
-          width: 312px;
-        }
-
-        .bitmap-large {
-          --scale: 2.55;
-        }
-
-        .bitmap-medium {
-          --scale: 1.75;
-        }
-
-        .bitmap-small {
-          --scale: 1.3;
-        }
+        :root { --intro-ui-scale: 0.82; }
       }
 
       @media (max-width: 640px) {
-        #intro-menu-column {
-          left: 8px;
-          width: calc(100vw - 16px);
-        }
-
-        #intro-name-row,
-        #intro-enter-btn,
-        #intro-link-pump,
-        #intro-link-dex,
-        #intro-link-community {
-          width: calc(100vw - 16px);
-          height: 30px;
-        }
-
-        .intro-row-text {
-          right: 14px;
-          top: 6px;
-        }
-
-        #intro-name-shell {
-          left: 180px;
-          right: 8px;
-          top: 5px;
-          height: 22px;
-        }
-
-        #intro-name-input {
-          font-size: 14px;
-        }
-
-        #intro-menu-divider {
-          width: calc(100vw - 24px);
-        }
-
-        #intro-progress-shell {
-          width: calc(100vw - 24px);
-          height: 11px;
-        }
-
-        #intro-description-strip {
-          bottom: -44px;
-        }
-
-        .bitmap-large {
-          --scale: 1.95;
-        }
-
-        .bitmap-medium {
-          --scale: 1.45;
-        }
-
-        .bitmap-small {
-          --scale: 1.12;
-        }
+        :root { --intro-ui-scale: 0.68; }
       }
     </style>
   </head>
@@ -550,47 +460,49 @@
       <div id="intro-bottom-bar" aria-hidden="true"></div>
       <div id="intro-bottom-line" aria-hidden="true"></div>
 
-      <div id="intro-title-block">
-        <h1 id="intro-title-main" class="bitmap-text bitmap-large" aria-label="NAZI ZOMBIES"></h1>
-        <div id="intro-title-sub" class="bitmap-text bitmap-medium bitmap-red" aria-label="ON SOLANA"></div>
-      </div>
+      <div id="intro-hud">
+        <div id="intro-title-block">
+          <h1 id="intro-title-main" class="bitmap-text bitmap-large" aria-label="NAZI ZOMBIES"></h1>
+          <div id="intro-title-sub" class="bitmap-text bitmap-small bitmap-red" aria-label="ON SOLANA"></div>
+        </div>
 
-      <div id="intro-menu-column">
-        <div id="intro-name-row" class="intro-menu-row" data-row-key="name" tabindex="0" role="button" aria-label="PLAYER NAME">
-          <span id="intro-name-label" class="bitmap-text bitmap-medium"></span>
+        <div id="intro-menu-column">
+          <div id="intro-name-row" class="intro-menu-row intro-row-order-name" data-row-key="name" tabindex="0" role="button" aria-label="PLAYER NAME">
+            <span id="intro-name-label" class="bitmap-text bitmap-medium"></span>
+          </div>
           <div id="intro-name-shell">
             <input id="intro-name-input" type="text" maxlength="24" autocomplete="name" spellcheck="false" value="">
             <span id="intro-name-caret" aria-hidden="true"></span>
           </div>
+
+          <button type="button" id="intro-enter-btn" class="intro-menu-row intro-row-order-enter" data-row-key="enter" aria-label="ENTER">
+            <span id="intro-enter-text" class="intro-row-text bitmap-text bitmap-medium"></span>
+          </button>
+
+          <div id="intro-menu-divider" class="intro-divider-order-3"></div>
+
+          <a id="intro-link-pump" class="intro-menu-row intro-row-order-pump" data-row-key="pump" href="https://pump.fun" target="_blank" rel="noopener noreferrer" aria-label="PUMP.FUN">
+            <span id="intro-link-pump-text" class="intro-row-text bitmap-text bitmap-medium"></span>
+          </a>
+          <a id="intro-link-dex" class="intro-menu-row intro-row-order-dex" data-row-key="dex" href="https://dexscreener.com" target="_blank" rel="noopener noreferrer" aria-label="DEXSCREENER">
+            <span id="intro-link-dex-text" class="intro-row-text bitmap-text bitmap-medium"></span>
+          </a>
+          <a id="intro-link-community" class="intro-menu-row intro-row-order-community" data-row-key="community" href="https://x.com" target="_blank" rel="noopener noreferrer" aria-label="COMMUNITY">
+            <span id="intro-link-community-text" class="intro-row-text bitmap-text bitmap-medium"></span>
+          </a>
         </div>
 
-        <button type="button" id="intro-enter-btn" class="intro-menu-row" data-row-key="enter" aria-label="ENTER">
-          <span id="intro-enter-text" class="intro-row-text bitmap-text bitmap-medium"></span>
-        </button>
-
-        <div id="intro-menu-divider"></div>
-
-        <a id="intro-link-pump" class="intro-menu-row" data-row-key="pump" href="https://pump.fun" target="_blank" rel="noopener noreferrer" aria-label="PUMP.FUN">
-          <span id="intro-link-pump-text" class="intro-row-text bitmap-text bitmap-medium"></span>
-        </a>
-        <a id="intro-link-dex" class="intro-menu-row" data-row-key="dex" href="https://dexscreener.com" target="_blank" rel="noopener noreferrer" aria-label="DEXSCREENER">
-          <span id="intro-link-dex-text" class="intro-row-text bitmap-text bitmap-medium"></span>
-        </a>
-        <a id="intro-link-community" class="intro-menu-row" data-row-key="community" href="https://x.com" target="_blank" rel="noopener noreferrer" aria-label="COMMUNITY">
-          <span id="intro-link-community-text" class="intro-row-text bitmap-text bitmap-medium"></span>
-        </a>
-      </div>
-
-      <div id="intro-status-wrap">
-        <div id="intro-status-text" class="bitmap-text bitmap-small" aria-live="polite"></div>
-        <div id="intro-progress-shell" aria-hidden="true">
-          <div id="intro-progress-fill"></div>
+        <div id="intro-status-wrap">
+          <div id="intro-status-text" class="bitmap-text bitmap-small" aria-live="polite"></div>
+          <div id="intro-progress-shell" aria-hidden="true">
+            <div id="intro-progress-fill"></div>
+          </div>
+          <div id="intro-progress-percent" class="bitmap-text bitmap-small" aria-live="polite"></div>
+          <div id="intro-description-strip" class="bitmap-text bitmap-medium" aria-live="polite"></div>
         </div>
-        <div id="intro-progress-percent" class="bitmap-text bitmap-small" aria-live="polite"></div>
-        <div id="intro-description-strip" class="bitmap-text bitmap-medium" aria-live="polite"></div>
-      </div>
 
-      <div id="intro-cursor" aria-hidden="true"></div>
+        <div id="intro-cursor" aria-hidden="true"></div>
+      </div>
     </div>
 
     <div class="emscripten legacy-hidden" id="status">Please allow/unblock our javascript to play.</div>
