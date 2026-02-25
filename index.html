@@ -151,14 +151,14 @@
         top: 0;
         left: 0;
         width: 620px;
-        min-height: 215px;
+        min-height: 320px;
       }
 
       .intro-menu-row {
         position: absolute;
         left: 0;
         width: 290px;
-        height: 22px;
+        height: 34px;
         margin-top: 0;
         border: 0;
         background: transparent;
@@ -215,7 +215,7 @@
       .intro-row-text {
         position: absolute;
         right: 15px;
-        top: 3px;
+        top: 4px;
         z-index: 1;
       }
 
@@ -232,16 +232,16 @@
       #intro-name-label {
         position: absolute;
         right: 15px;
-        top: 3px;
+        top: 4px;
         z-index: 1;
       }
 
       #intro-name-shell {
         position: absolute;
         left: 314px;
-        top: 70px;
+        top: 72px;
         width: 290px;
-        height: 22px;
+        height: 34px;
         border: 2px solid #313131;
         background: rgba(0, 0, 0, 1);
         z-index: 2;
@@ -255,7 +255,8 @@
         background: transparent;
         color: var(--menu-text);
         font-family: "Lucida Console", "Courier New", monospace;
-        font-size: 14px;
+        font-size: 22px;
+        line-height: 32px;
         letter-spacing: 0.25px;
         padding: 0 6px;
       }
@@ -263,9 +264,9 @@
       #intro-name-caret {
         position: absolute;
         left: 6px;
-        top: 3px;
+        top: 5px;
         width: 2px;
-        height: 14px;
+        height: 23px;
         background: #cfd2d7;
         opacity: 0;
         pointer-events: none;
@@ -276,11 +277,11 @@
         animation: intro-blink 1s steps(1, end) infinite;
       }
 
-      .intro-row-order-name { top: 70px; }
-      .intro-row-order-enter { top: 101px; }
-      .intro-row-order-pump { top: 126px; }
-      .intro-row-order-dex { top: 151px; }
-      .intro-row-order-community { top: 176px; }
+      .intro-row-order-name { top: 72px; }
+      .intro-row-order-enter { top: 116px; }
+      .intro-row-order-pump { top: 160px; }
+      .intro-row-order-dex { top: 204px; }
+      .intro-row-order-community { top: 248px; }
 
       #intro-menu-divider {
         position: absolute;
@@ -291,24 +292,24 @@
         background: var(--menu-line);
       }
 
-      .intro-divider-order-3 { top: 120px; }
+      .intro-divider-order-3 { top: 149px; }
 
       #intro-status-wrap {
         position: absolute;
         left: 0;
         right: 0;
-        bottom: 58px;
+        bottom: 68px;
       }
 
       #intro-status-text {
         text-align: center;
-        min-height: 18px;
+        min-height: 28px;
       }
 
       #intro-progress-shell {
-        margin: 7px auto 0;
+        margin: 12px auto 0;
         width: min(640px, calc(100vw - 40px));
-        height: 10px;
+        height: 12px;
         border: 1px solid #464c53;
         background: rgba(3, 3, 3, 0.9);
         position: relative;
@@ -331,18 +332,18 @@
       }
 
       #intro-progress-percent {
-        margin-top: 4px;
+        margin-top: 8px;
         text-align: center;
-        min-height: 12px;
+        min-height: 18px;
       }
 
       #intro-description-strip {
         position: absolute;
         left: 0;
         right: 0;
-        bottom: -30px;
+        bottom: -46px;
         text-align: center;
-        min-height: 18px;
+        min-height: 28px;
       }
 
       #intro-cursor {
@@ -401,19 +402,19 @@
       }
 
       .bitmap-small {
-        --scale: 2.15;
+        --scale: 2.8;
       }
 
       .bitmap-medium {
-        --scale: 2.56;
+        --scale: 3.33;
       }
 
       .bitmap-large {
-        --scale: 5;
+        --scale: 6.5;
       }
 
       .bitmap-supersmall {
-        --scale: 1.56;
+        --scale: 2.03;
       }
 
       .legacy-hidden {
