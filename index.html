@@ -419,7 +419,7 @@
         state: "idle",
         hidden: false,
         downloadsDone: false,
-        engineReady: false,
+        frameReady: false,
         handoffDone: false,
         els: {},
         init: function() {
@@ -486,12 +486,12 @@
           this.downloadsDone = true;
           this.onGateUpdated();
         },
-        markEngineReady: function() {
-          this.engineReady = true;
+        markFrameReady: function() {
+          this.frameReady = true;
           this.onGateUpdated();
         },
         onGateUpdated: function() {
-          if (this.handoffDone || !this.downloadsDone || !this.engineReady) {
+          if (this.handoffDone || !this.downloadsDone || !this.frameReady) {
             return;
           }
           this.setState("engine_ready");
@@ -502,7 +502,7 @@
           }, 650);
         },
         handoff: function() {
-          if (this.handoffDone || !this.downloadsDone || !this.engineReady) {
+          if (this.handoffDone || !this.downloadsDone || !this.frameReady) {
             return;
           }
           this.handoffDone = true;
@@ -649,7 +649,21 @@
               Module.setStatus("Initialisation Failure");
               return;
             }
-            IntroUI.markEngineReady();
+            // Only hand off after at least one scheduled frame callback has fired.
+            var originalSched = Module.sched;
+            var frameSeen = false;
+            Module.sched = function() {
+              if (!frameSeen) {
+                frameSeen = true;
+                IntroUI.markFrameReady();
+              }
+              return originalSched.apply(this, arguments);
+            };
+            setTimeout(function() {
+              if (!frameSeen && IntroUI.downloadsDone && !IntroUI.handoffDone) {
+                IntroUI.setStatus("FINALIZING LAUNCH...", 100, false);
+              }
+            }, 2000);
           }
         ]
       };
