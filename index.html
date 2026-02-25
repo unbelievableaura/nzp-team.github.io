@@ -7,30 +7,30 @@
     <meta content="Nazi Zombies: Portable" property="og:title" />
     <meta content="Call of Duty: Zombies de-make, now in your browser via WebGL!" property="og:description" />
     <meta content="https://nzp-team.github.io/latest/game.html" property="og:url" />
-    <meta content="hhttps://nzp-team.github.io/latest/nzportable.ico" property="og:image" />
+    <meta content="https://nzp-team.github.io/latest/nzportable.ico" property="og:image" />
     <meta content="#6e0d00" data-react-helmet="true" name="theme-color" />
     <title>NZ: Portable</title>
     <link rel="icon" href="nzportable.ico">
     <style>
       :root {
-        --bg: #030303;
-        --panel: rgba(4, 4, 4, 0.90);
-        --text: #c9cbce;
-        --muted: #96989c;
-        --accent: #9b1111;
-        --accent-strong: #c71818;
+        --menu-line: #72767f;
+        --menu-text: #d4d5d8;
+        --menu-red: #a91a1a;
+        --menu-red-soft: #7e1414;
       }
 
       html,
       body {
-        background-color: var(--bg);
-        color: var(--text);
-        height: 100%;
-        width: 100%;
         margin: 0;
         padding: 0;
+        height: 100%;
+        width: 100%;
         overflow: hidden;
-        font-family: "Press Start 2P", "VT323", "Lucida Console", "Courier New", monospace;
+        background: #000;
+        color: var(--menu-text);
+        font-family: "Lucida Console", "Courier New", monospace;
+        -webkit-font-smoothing: none;
+        text-rendering: geometricPrecision;
       }
 
       .emscripten {
@@ -46,7 +46,6 @@
         margin: 0;
       }
 
-      /* the canvas must not have any border or padding, or mouse coords will be wrong */
       canvas.emscripten {
         border: 0 none;
         width: 100%;
@@ -66,169 +65,200 @@
         z-index: 30;
         display: grid;
         place-items: center;
-        background:
-          radial-gradient(1200px 600px at 22% 20%, rgba(88, 14, 14, 0.20), transparent 65%),
-          radial-gradient(1000px 500px at 75% 60%, rgba(35, 35, 35, 0.20), transparent 62%),
-          linear-gradient(180deg, #020202 0%, #090909 100%);
+        background: #040404;
       }
 
-      #intro-overlay::before {
+      #intro-bg {
+        position: absolute;
+        inset: 0;
+        background-image:
+          linear-gradient(0deg, rgba(0, 0, 0, 0.64), rgba(0, 0, 0, 0.42)),
+          url("assets/intro/bg.png");
+        background-size: cover;
+        background-position: center;
+        image-rendering: pixelated;
+      }
+
+      #intro-bg::after {
         content: "";
         position: absolute;
         inset: 0;
         background: repeating-linear-gradient(
-          180deg,
-          rgba(255, 255, 255, 0.02) 0,
-          rgba(255, 255, 255, 0.02) 1px,
-          rgba(0, 0, 0, 0) 2px,
-          rgba(0, 0, 0, 0) 4px
+          to bottom,
+          rgba(255, 255, 255, 0.03) 0,
+          rgba(255, 255, 255, 0.03) 1px,
+          rgba(0, 0, 0, 0.0) 2px,
+          rgba(0, 0, 0, 0.0) 4px
         );
-        pointer-events: none;
-      }
-
-      #intro-overlay.intro-hidden {
-        opacity: 0;
-        visibility: hidden;
-        transition: opacity 260ms ease, visibility 260ms ease;
       }
 
       #intro-panel {
         position: relative;
-        width: min(920px, calc(100vw - 40px));
-        padding: 34px 32px 26px;
-        border: 2px solid rgba(154, 155, 158, 0.58);
-        background: var(--panel);
-        box-shadow:
-          0 0 0 1px rgba(8, 8, 8, 0.85) inset,
-          0 0 42px rgba(0, 0, 0, 0.6),
-          0 0 18px rgba(167, 18, 18, 0.16);
+        width: min(1024px, calc(100vw - 38px));
+        min-height: min(540px, calc(100vh - 32px));
+        border-top: 3px solid rgba(122, 125, 131, 0.7);
+        border-bottom: 3px solid rgba(122, 125, 131, 0.7);
+        background: rgba(0, 0, 0, 0.42);
+        box-shadow: inset 0 0 0 2px rgba(0, 0, 0, 0.5);
+        padding: 34px 28px;
+      }
+
+      .intro-row-line {
+        width: 100%;
+        height: 4px;
+        background: url("assets/intro/line.png") center/contain repeat-x;
+        opacity: 0.85;
+      }
+
+      #intro-logo {
+        width: clamp(130px, 18vw, 220px);
+        image-rendering: pixelated;
+        filter: drop-shadow(0 0 12px rgba(0, 0, 0, 0.8));
+      }
+
+      #intro-heading {
+        margin-top: 14px;
       }
 
       #intro-title-main {
         margin: 0;
-        color: #d2d4d8;
-        font-size: clamp(34px, 5.8vw, 78px);
-        line-height: 1.02;
-        letter-spacing: 0.10em;
+        font-size: clamp(38px, 7vw, 96px);
+        letter-spacing: 0.08em;
+        color: var(--menu-text);
+        line-height: 1;
         text-transform: uppercase;
-        text-shadow:
-          0 0 5px rgba(255, 255, 255, 0.16),
-          0 0 18px rgba(0, 0, 0, 0.65);
+        text-shadow: 0 0 2px rgba(255, 255, 255, 0.32), 0 0 14px rgba(0, 0, 0, 0.8);
       }
 
       #intro-title-sub {
-        margin: 12px 0 24px;
-        color: var(--accent-strong);
-        font-size: clamp(14px, 2.2vw, 28px);
-        letter-spacing: 0.32em;
+        margin-top: 8px;
+        font-size: clamp(16px, 2.2vw, 30px);
+        letter-spacing: 0.34em;
+        color: var(--menu-red);
         text-transform: uppercase;
-        text-shadow: 0 0 10px rgba(125, 0, 0, 0.66);
       }
 
-      .intro-divider {
-        height: 2px;
-        background: linear-gradient(90deg, transparent 0%, rgba(151, 20, 20, 0.85) 20%, rgba(151, 20, 20, 0.85) 80%, transparent 100%);
-        margin-bottom: 24px;
+      #intro-form {
+        margin-top: 30px;
+        width: min(930px, 100%);
       }
 
       #intro-name-row {
         display: grid;
-        grid-template-columns: minmax(180px, 32%) 1fr;
-        gap: 14px;
+        grid-template-columns: minmax(200px, 36%) 1fr;
         align-items: center;
+        gap: 14px;
       }
 
       #intro-name-label {
-        color: #b6b8bc;
-        font-size: clamp(12px, 1.6vw, 18px);
-        letter-spacing: 0.12em;
+        font-size: clamp(17px, 2.4vw, 48px);
+        letter-spacing: 0.06em;
+        color: #d7d8db;
         text-transform: uppercase;
       }
 
       #intro-name-input {
-        height: 52px;
-        border: 2px solid rgba(96, 100, 108, 0.74);
-        background: rgba(2, 2, 2, 0.88);
-        color: #dedfe1;
-        outline: none;
+        height: clamp(44px, 5.8vw, 74px);
+        border: 2px solid #24272d;
+        background: rgba(5, 6, 7, 0.88);
+        color: var(--menu-text);
         padding: 0 14px;
-        font-size: clamp(14px, 1.9vw, 22px);
-        letter-spacing: 0.04em;
-        text-transform: none;
+        font-size: clamp(17px, 2.2vw, 44px);
+        outline: none;
       }
 
       #intro-name-input:focus {
-        border-color: rgba(170, 174, 180, 0.9);
-        box-shadow: 0 0 0 1px rgba(15, 15, 15, 0.9) inset, 0 0 12px rgba(120, 20, 20, 0.40);
+        border-color: #595f67;
+        box-shadow: 0 0 0 2px rgba(21, 21, 21, 0.8);
       }
 
-      #intro-action-row {
+      #intro-controls {
+        margin-top: 18px;
         display: flex;
-        justify-content: flex-end;
-        margin-top: 22px;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
       }
 
       #intro-enter-btn {
-        min-width: 210px;
+        min-width: 220px;
         height: 52px;
-        border: 2px solid rgba(167, 29, 29, 0.82);
-        background: linear-gradient(180deg, rgba(86, 7, 7, 0.92) 0%, rgba(42, 5, 5, 0.96) 100%);
-        color: #e5dfe0;
+        border: 2px solid #702020;
+        background: linear-gradient(180deg, rgba(147, 27, 27, 0.95), rgba(86, 11, 11, 0.92));
+        color: #ece9e9;
         font-family: inherit;
-        font-size: clamp(14px, 1.7vw, 20px);
-        letter-spacing: 0.16em;
-        text-transform: uppercase;
+        font-size: 21px;
+        letter-spacing: 0.09em;
         cursor: pointer;
       }
 
-      #intro-enter-btn:hover {
-        filter: brightness(1.08);
-      }
-
       #intro-enter-btn:disabled {
-        opacity: 0.58;
+        opacity: 0.55;
         cursor: default;
       }
 
-      #intro-status-wrap {
+      #intro-status {
         margin-top: 22px;
       }
 
       #intro-status-text {
-        color: var(--muted);
-        min-height: 20px;
-        font-size: clamp(11px, 1.2vw, 14px);
-        letter-spacing: 0.05em;
+        min-height: 22px;
+        color: #a8acb2;
+        font-size: 15px;
       }
 
       #intro-progress-shell {
-        margin-top: 10px;
-        height: 14px;
-        border: 1px solid rgba(111, 114, 120, 0.66);
-        background: rgba(0, 0, 0, 0.7);
+        margin-top: 9px;
+        height: 16px;
+        border: 1px solid #454b54;
+        background: rgba(3, 3, 3, 0.85);
         position: relative;
         overflow: hidden;
       }
 
       #intro-progress-fill {
         position: absolute;
-        inset: 0 auto 0 0;
+        left: 0;
+        top: 0;
+        height: 100%;
         width: 0%;
-        background: linear-gradient(90deg, rgba(126, 17, 17, 0.9), rgba(189, 38, 38, 0.94));
-        transition: width 120ms linear;
+        background: linear-gradient(90deg, var(--menu-red-soft), var(--menu-red));
+        transition: width 110ms linear;
+      }
+
+      #intro-progress-shell.indeterminate #intro-progress-fill {
+        width: 35%;
+        animation: intro-slide 1.2s linear infinite;
       }
 
       #intro-progress-percent {
         margin-top: 8px;
         text-align: right;
-        color: #acafb3;
-        font-size: 11px;
+        font-size: 12px;
+        color: #afb3b9;
       }
 
-      .intro-loading #intro-name-row,
-      .intro-loading #intro-action-row {
-        opacity: 0.55;
+      #intro-cursor {
+        position: absolute;
+        right: 22px;
+        bottom: 18px;
+        width: 42px;
+        height: 42px;
+        background: url("assets/intro/hilight.png") center/contain no-repeat;
+        opacity: 0.75;
+        animation: intro-pulse 1.8s ease-in-out infinite;
+      }
+
+      #intro-overlay.intro-loading #intro-name-row,
+      #intro-overlay.intro-loading #intro-controls {
+        opacity: 0.56;
         pointer-events: none;
+      }
+
+      #intro-overlay.intro-handoff {
+        opacity: 0;
+        visibility: hidden;
+        transition: opacity 280ms ease, visibility 280ms ease;
       }
 
       .legacy-hidden {
@@ -243,16 +273,21 @@
         border: 0 !important;
       }
 
-      @media (max-width: 720px) {
-        #intro-panel {
-          width: calc(100vw - 22px);
-          padding: 22px 14px 18px;
-        }
+      @keyframes intro-slide {
+        0% { transform: translateX(-130%); }
+        100% { transform: translateX(330%); }
+      }
 
-        #intro-title-sub {
-          margin-top: 8px;
-          margin-bottom: 18px;
-          letter-spacing: 0.18em;
+      @keyframes intro-pulse {
+        0%, 100% { opacity: 0.58; }
+        50% { opacity: 0.9; }
+      }
+
+      @media (max-width: 740px) {
+        #intro-panel {
+          width: calc(100vw - 20px);
+          min-height: calc(100vh - 22px);
+          padding: 20px 14px;
         }
 
         #intro-name-row {
@@ -260,47 +295,55 @@
           gap: 8px;
         }
 
-        #intro-name-input {
-          height: 46px;
-          font-size: 16px;
-        }
-
-        #intro-action-row {
-          margin-top: 14px;
-          justify-content: stretch;
+        #intro-controls {
+          flex-direction: column;
+          align-items: stretch;
         }
 
         #intro-enter-btn {
           width: 100%;
           min-width: 0;
-          height: 46px;
+        }
+
+        #intro-title-sub {
+          letter-spacing: 0.2em;
         }
       }
     </style>
   </head>
   <body ondrop="gotdrop(event);" ondragover="event.preventDefault()">
     <div id="intro-overlay" role="dialog" aria-label="NZP Intro">
+      <div id="intro-bg" aria-hidden="true"></div>
       <section id="intro-panel">
-        <h1 id="intro-title-main">NAZI ZOMBIES</h1>
-        <div id="intro-title-sub">ON SOLANA</div>
-        <div class="intro-divider"></div>
-
-        <div id="intro-name-row">
-          <label id="intro-name-label" for="intro-name-input">PLAYER NAME</label>
-          <input id="intro-name-input" type="text" maxlength="24" autocomplete="name" spellcheck="false" value="Unknown Soldier">
+        <div class="intro-row-line"></div>
+        <img id="intro-logo" src="assets/intro/logo.png" alt="NZP logo">
+        <div id="intro-heading">
+          <h1 id="intro-title-main">NAZI ZOMBIES</h1>
+          <div id="intro-title-sub">ON SOLANA</div>
         </div>
+        <div class="intro-row-line"></div>
 
-        <div id="intro-action-row">
-          <button type="button" id="intro-enter-btn">ENTER</button>
-        </div>
-
-        <div id="intro-status-wrap">
-          <div id="intro-status-text">Awaiting deployment orders...</div>
-          <div id="intro-progress-shell" aria-hidden="true">
-            <div id="intro-progress-fill"></div>
+        <div id="intro-form">
+          <div id="intro-name-row">
+            <label id="intro-name-label" for="intro-name-input">PLAYER NAME</label>
+            <input id="intro-name-input" type="text" maxlength="24" autocomplete="name" spellcheck="false" value="Unknown Soldier">
           </div>
-          <div id="intro-progress-percent">0%</div>
+
+          <div id="intro-controls">
+            <div style="font-size:13px;color:#9ba0a8;">PROFILE READY</div>
+            <button type="button" id="intro-enter-btn">ENTER</button>
+          </div>
+
+          <div id="intro-status">
+            <div id="intro-status-text">Awaiting deployment orders...</div>
+            <div id="intro-progress-shell" aria-hidden="true">
+              <div id="intro-progress-fill"></div>
+            </div>
+            <div id="intro-progress-percent">0%</div>
+          </div>
         </div>
+
+        <div id="intro-cursor" aria-hidden="true"></div>
       </section>
     </div>
 
@@ -314,119 +357,113 @@
     <canvas class="emscripten" id="canvas" oncontextmenu="event.preventDefault()" hidden="1"></canvas>
 
     <script type="text/javascript">
-      var INTRO_STORAGE_KEY = "nzp_player_name";
-      var introStarted = false;
-      var overlayHidden = false;
-
-      function introElements() {
-        return {
-          overlay: document.getElementById("intro-overlay"),
-          panel: document.getElementById("intro-panel"),
-          input: document.getElementById("intro-name-input"),
-          enter: document.getElementById("intro-enter-btn"),
-          status: document.getElementById("intro-status-text"),
-          bar: document.getElementById("intro-progress-fill"),
-          percent: document.getElementById("intro-progress-percent")
-        };
-      }
-
-      function sanitizePlayerName(raw) {
-        var value = String(raw || "");
-        value = value.replace(/[\u0000-\u001F\u007F"'`\\]/g, "");
-        value = value.trim();
-        if (!value.length) {
-          return "Unknown Soldier";
-        }
-        if (value.length > 24) {
-          value = value.slice(0, 24);
-        }
-        return value;
-      }
-
-      function readStoredName() {
-        try {
-          return sanitizePlayerName(localStorage.getItem(INTRO_STORAGE_KEY));
-        } catch (err) {
-          console.warn("localStorage read failed", err);
-          return "Unknown Soldier";
-        }
-      }
-
-      function savePlayerName(name) {
-        try {
-          localStorage.setItem(INTRO_STORAGE_KEY, name);
-        } catch (err) {
-          console.warn("localStorage write failed", err);
-        }
-      }
-
-      function setModuleNameArgs(name) {
-        var args = Array.isArray(Module.arguments) ? Module.arguments.slice() : [];
-        var cleaned = [];
-        for (var i = 0; i < args.length; i++) {
-          if (args[i] === "+name") {
-            i += 1;
-            continue;
+      var IntroUI = {
+        state: "idle",
+        hidden: false,
+        els: {},
+        init: function() {
+          this.els.overlay = document.getElementById("intro-overlay");
+          this.els.input = document.getElementById("intro-name-input");
+          this.els.enter = document.getElementById("intro-enter-btn");
+          this.els.status = document.getElementById("intro-status-text");
+          this.els.bar = document.getElementById("intro-progress-fill");
+          this.els.percent = document.getElementById("intro-progress-percent");
+          this.els.shell = document.getElementById("intro-progress-shell");
+          return !!(this.els.overlay && this.els.input && this.els.enter && this.els.status && this.els.bar && this.els.percent && this.els.shell);
+        },
+        setState: function(next) {
+          this.state = next;
+          if (this.els.overlay) {
+            this.els.overlay.classList.toggle("intro-loading", next === "starting" || next === "loading");
           }
-          cleaned.push(args[i]);
+          if (this.els.enter) {
+            this.els.enter.disabled = next !== "idle";
+          }
+        },
+        setStatus: function(text, percent, indeterminate) {
+          if (!this.els.status) {
+            return;
+          }
+          this.els.status.textContent = text || "";
+          if (indeterminate) {
+            this.els.shell.classList.add("indeterminate");
+          } else {
+            this.els.shell.classList.remove("indeterminate");
+          }
+          if (typeof percent === "number" && isFinite(percent)) {
+            var value = Math.max(0, Math.min(100, percent));
+            this.els.bar.style.width = value + "%";
+            this.els.percent.textContent = Math.round(value) + "%";
+          }
+        },
+        hide: function() {
+          if (this.hidden || !this.els.overlay) {
+            return;
+          }
+          this.hidden = true;
+          this.els.overlay.classList.add("intro-handoff");
+          document.getElementById("canvas").hidden = false;
         }
-        cleaned.push("+name");
-        cleaned.push(name);
-        Module.arguments = cleaned;
-      }
+      };
 
-      function setIntroStatus(text, percent) {
-        var ui = introElements();
-        if (!ui.status || !ui.bar || !ui.percent) {
-          return;
+      var NameStore = {
+        key: "nzp_player_name",
+        sanitize: function(raw) {
+          var value = String(raw || "");
+          value = value.replace(/[\u0000-\u001F\u007F"'`\\]/g, "").trim();
+          if (!value.length) {
+            value = "Unknown Soldier";
+          }
+          if (value.length > 24) {
+            value = value.slice(0, 24);
+          }
+          return value;
+        },
+        load: function() {
+          try {
+            return this.sanitize(localStorage.getItem(this.key));
+          } catch (_err) {
+            return "Unknown Soldier";
+          }
+        },
+        save: function(name) {
+          try {
+            localStorage.setItem(this.key, name);
+          } catch (_err) {
+          }
         }
-        ui.status.textContent = text || "";
-        if (typeof percent === "number" && isFinite(percent)) {
-          var clamped = Math.max(0, Math.min(100, percent));
-          ui.bar.style.width = clamped + "%";
-          ui.percent.textContent = Math.round(clamped) + "%";
-        }
-      }
+      };
 
-      function hideIntroOverlay() {
-        if (overlayHidden) {
-          return;
-        }
-        overlayHidden = true;
-        var ui = introElements();
-        var canvas = document.getElementById("canvas");
-        if (canvas) {
-          canvas.hidden = false;
-        }
-        if (ui.overlay) {
-          ui.overlay.classList.add("intro-hidden");
-        }
-      }
-
-      function startFromIntro() {
-        if (introStarted || Module.began) {
-          return;
-        }
-
-        var ui = introElements();
-        if (!ui.input || !ui.enter || !ui.overlay) {
-          console.warn("Intro UI missing; falling back to legacy boot flow.");
+      var BootBridge = {
+        started: false,
+        ensureArgs: function(name) {
+          var current = Array.isArray(Module.arguments) ? Module.arguments.slice() : [];
+          var next = [];
+          for (var i = 0; i < current.length; i++) {
+            if (current[i] === "+name") {
+              i += 1;
+              continue;
+            }
+            next.push(current[i]);
+          }
+          next.push("+name");
+          next.push(name);
+          Module.arguments = next;
+        },
+        startFromIntro: function() {
+          if (this.started || Module.began) {
+            return;
+          }
+          this.started = true;
+          var name = NameStore.sanitize(IntroUI.els.input.value);
+          IntroUI.els.input.value = name;
+          NameStore.save(name);
+          this.ensureArgs(name);
+          IntroUI.setState("starting");
+          IntroUI.setStatus("Downloading...", 0, false);
           begin();
-          return;
         }
-
-        introStarted = true;
-        var playerName = sanitizePlayerName(ui.input.value);
-        ui.input.value = playerName;
-        savePlayerName(playerName);
-        setModuleNameArgs(playerName);
-
-        ui.overlay.classList.add("intro-loading");
-        ui.enter.disabled = true;
-        setIntroStatus("Downloading...", 0);
-
-        begin();
-      }
+      };
 
       // connect to canvas
       var Module = {
@@ -436,32 +473,31 @@
           "nzp/progs.pk3": "nzp/progs.pk3"
         },
         print: function(msg) {
-          // stdout...
           console.log(msg);
         },
         printErr: function(text) {
-          // stderr...
           console.log(text);
         },
-        canvas: document.getElementById("canvas"), // for webgl to attach to
+        canvas: document.getElementById("canvas"),
         setStatus: function(text) {
-          // gets spammed some prints during startup. blame emscripten.
           if (Module.setStatus.interval) {
             clearInterval(Module.setStatus.interval);
           }
           var m = text.match(/([^(]+)\((\d+(\.\d+)?)\/(\d+)\)/);
           var statusElement = document.getElementById("status");
           var progressElement = document.getElementById("progress");
-          var progressPercent = null;
+          var percent = null;
+          var indeterminate = true;
           if (m) {
             text = m[1].trim();
-            var value = parseInt(m[2], 10) * 100;
+            var v = parseInt(m[2], 10) * 100;
             var max = parseInt(m[4], 10) * 100;
-            progressElement.value = value;
+            progressElement.value = v;
             progressElement.max = max;
             progressElement.hidden = false;
             if (max > 0) {
-              progressPercent = (value / max) * 100;
+              percent = (v / max) * 100;
+              indeterminate = false;
             }
           } else {
             progressElement.value = null;
@@ -471,35 +507,27 @@
           statusElement.innerHTML = text;
           statusElement.hidden = text.length === 0;
 
-          if (text === "All downloads complete.") {
-            if (progressPercent === null) {
-              progressPercent = 100;
-            }
-            setTimeout(hideIntroOverlay, 700);
+          if (IntroUI.state === "starting" || IntroUI.state === "loading") {
+            IntroUI.setState("loading");
+            IntroUI.setStatus(text || "", percent, indeterminate);
           }
-
-          setIntroStatus(text || "", progressPercent);
+          if (text === "All downloads complete.") {
+            IntroUI.setStatus(text, 100, false);
+            setTimeout(function() {
+              IntroUI.setState("handoff");
+              IntroUI.hide();
+            }, 650);
+          }
         },
-        // preRun: [],
         totalDependencies: 0,
         monitorRunDependencies: function(left) {
-          // progress is progress...
           this.totalDependencies = Math.max(this.totalDependencies, left);
-          Module.setStatus(
-            left
-              ? "Preparing... (" + (this.totalDependencies - left) + "/" + this.totalDependencies + ")"
-              : "All downloads complete."
-          );
+          Module.setStatus(left ? "Preparing... (" + (this.totalDependencies - left) + "/" + this.totalDependencies + ")" : "All downloads complete.");
         },
-        // onRuntimeInitialized: function(){},
         postRun: [
-          // each of these are called after main was run. we should have our mainloop set up now
           function() {
             if (Module["sched"] === undefined) {
-              // our main function failed to set up the main loop. ie: main didn't get called. panic.
-              alert(
-                "Unable to initialise. You may need to restart your browser. If you get this often and inconsistently, consider using a 64bit browser instead."
-              );
+              alert("Unable to initialise. You may need to restart your browser. If you get this often and inconsistently, consider using a 64bit browser instead.");
               Module.setStatus("Initialisation Failure");
             }
           }
@@ -515,59 +543,47 @@
         document.getElementById("begin").hidden = true;
         Module.setStatus("Downloading...");
 
-        // make a script. do it the hard way for the error.
         var s = document.createElement("script");
-        // set it up
         s.setAttribute("src", "ftewebgl.js");
         s.setAttribute("type", "text/javascript");
         s.setAttribute("charset", "utf-8");
-        s.addEventListener(
-          "error",
-          function() {
-            alert("Oh noes! we got an error!");
-            Module.setStatus("Unable to download engine javascript");
-          },
-          false
-        );
-        // add to DOM
+        s.addEventListener("error", function() {
+          alert("Oh noes! we got an error!");
+          Module.setStatus("Unable to download engine javascript");
+        }, false);
         document.head.appendChild(s);
       }
 
-      // stuff to facilitate our drag+drop filesystem support
       function fixupfilepath(fname, path) {
-        // we just have a filename, try to guess where to put it.
         if (path != "") {
-          return path + fname; // already has a path. use it. this allows people to drag+drop gamedirs.
+          return path + fname;
         }
         var ext = fname.substr(fname.lastIndexOf(".") + 1);
         if (ext == "fmf" || ext == "kpf") {
-          // these are the only files that really make sense in the root.
           return fname;
         }
         if (ext == "bsp" || ext == "map" || ext == "lit" || ext == "lux") {
-          return "id1/maps/" + fname; // bsps get their own extra subdir
+          return "id1/maps/" + fname;
         }
-        return "id1/" + fname; // probably a pak. maybe a cfg, no idea really.
+        return "id1/" + fname;
       }
 
       function showfiles() {
-        // print the pending file list in some pretty way
         if (Module.began) {
           return;
         }
         Module.setStatus("");
         document.getElementById("dropzone").hidden = false;
         document.getElementById("begin").hidden = false;
-        var nt =
-          "Drag gamedirs or individual package files here to make them available!<br/>Active Files:<br/><pre>";
+        var nt = "Drag gamedirs or individual package files here to make them available!<br/>Active Files:<br/><pre>";
         var keys = Object.keys(Module.files);
         for (var i = 0; i < keys.length; i++) {
           if (Module.files[keys[i]] instanceof ArrayBuffer) {
             var sz = Module.files[keys[i]].byteLength;
             if (sz > 512 * 1024) {
-              sz = sz / (1024 * 1024) + "mb";
+              sz = (sz / (1024 * 1024)) + "mb";
             } else if (sz > 512) {
-              sz = sz / 1024 + "kb";
+              sz = (sz / 1024) + "kb";
             } else {
               sz = sz + " bytes";
             }
@@ -581,18 +597,16 @@
       }
 
       function scanfiles(item, path) {
-        // for directory drops
         if (item.isFile) {
           item.file(function(f) {
             var n = fixupfilepath(f.name, path);
-            Module.files[n] = f.arrayBuffer(); // actually a promise...
+            Module.files[n] = f.arrayBuffer();
             Module.files[n].then(function(buf) {
               Module.files[n] = buf;
               showfiles();
-            }); // try and resolve it now.
+            });
           });
         } else if (item.isDirectory) {
-          // Get folder contents
           var dirReader = item.createReader();
           dirReader.readEntries(function(entries) {
             for (var i = 0; i < entries.length; i++) {
@@ -603,7 +617,6 @@
       }
 
       function gotdrop(ev) {
-        // user drag+dropped something.
         ev.preventDefault();
         for (var i = 0; i < ev.dataTransfer.items.length; i++) {
           if (ev.dataTransfer.items[i].webkitGetAsEntry) {
@@ -614,41 +627,38 @@
           } else if (ev.dataTransfer.items[i].kind === "file") {
             var f = ev.dataTransfer.items[i].getAsFile();
             var n = fixupfilepath(f.name);
-            Module.files[n] = f.arrayBuffer(); // actually a promise...
+            Module.files[n] = f.arrayBuffer();
             Module.files[n].then(function(buf) {
               Module.files[n] = buf;
               showfiles();
-            }); // try and resolve it now.
+            });
           }
         }
         showfiles();
       }
 
-      (function initIntroFlow() {
-        var ui = introElements();
-        if (!ui.overlay || !ui.input || !ui.enter) {
+      (function initIntroBoot() {
+        if (!IntroUI.init()) {
           showfiles();
           return;
         }
 
-        var remembered = readStoredName();
-        ui.input.value = remembered;
-
-        ui.enter.addEventListener("click", function() {
-          startFromIntro();
+        IntroUI.els.input.value = NameStore.load();
+        IntroUI.els.enter.addEventListener("click", function() {
+          BootBridge.startFromIntro();
         });
-
-        ui.input.addEventListener("keydown", function(ev) {
+        IntroUI.els.input.addEventListener("keydown", function(ev) {
           if (ev.key === "Enter") {
             ev.preventDefault();
-            startFromIntro();
+            BootBridge.startFromIntro();
           }
         });
 
-        var shouldAutoStart = window.location.hash !== "";
-        if (shouldAutoStart) {
+        if (window.location.hash != "") {
           requestAnimationFrame(function() {
-            setTimeout(startFromIntro, 40);
+            setTimeout(function() {
+              BootBridge.startFromIntro();
+            }, 60);
           });
         }
       })();
