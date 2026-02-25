@@ -425,6 +425,7 @@
         hidden: false,
         handoffDone: false,
         engineReady: false,
+        engineInitFailed: false,
         els: {},
         init: function() {
           this.els.overlay = document.getElementById("intro-overlay");
@@ -491,6 +492,14 @@
         markEngineReady: function() {
           this.engineReady = true;
           this.tryHandoff();
+        },
+        markEngineInitFailed: function() {
+          this.engineInitFailed = true;
+          this.setState("idle");
+          this.setStatus("ENGINE INIT FAILED. PRESS ENTER TO RELOAD.", 100, false);
+          if (this.els.enterText) {
+            renderBitmapText(this.els.enterText, "RELOAD");
+          }
         },
         tryHandoff: function() {
           if (this.handoffDone || !BootBridge.started || !BootPreload.isReady() || !this.engineReady) {
@@ -576,6 +585,10 @@
           begin();
         },
         handleEnterAction: function() {
+          if (IntroUI.engineInitFailed) {
+            window.location.reload();
+            return;
+          }
           if (this.started || Module.began) {
             return;
           }
@@ -776,6 +789,10 @@
         },
         postRun: [
           function() {
+            if (Module["sched"] === undefined) {
+              IntroUI.markEngineInitFailed();
+              return;
+            }
             IntroUI.markEngineReady();
             setTimeout(function() {
               if (!IntroUI.handoffDone) {
