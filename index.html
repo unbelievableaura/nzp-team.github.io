@@ -14,8 +14,10 @@
     <style>
       :root {
         --menu-text: #d4d5d8;
+        --menu-line: rgba(118, 123, 131, 0.82);
         --menu-red: #a91a1a;
-        --menu-red-soft: #7e1414;
+        --menu-red-dark: #6f1212;
+        --menu-panel-shadow: rgba(0, 0, 0, 0.66);
       }
 
       html,
@@ -60,8 +62,7 @@
         position: fixed;
         inset: 0;
         z-index: 30;
-        display: grid;
-        place-items: center;
+        display: block;
         background: #040404;
       }
 
@@ -90,79 +91,112 @@
       }
 
       #intro-panel {
-        position: relative;
-        width: min(1024px, calc(100vw - 38px));
-        min-height: min(540px, calc(100vh - 32px));
-        border-top: 3px solid rgba(122, 125, 131, 0.7);
-        border-bottom: 3px solid rgba(122, 125, 131, 0.7);
-        background: rgba(0, 0, 0, 0.42);
-        box-shadow: inset 0 0 0 2px rgba(0, 0, 0, 0.5);
-        padding: 34px 28px;
+        position: absolute;
+        left: 0;
+        right: 0;
+        top: 24px;
+        bottom: 24px;
+        width: min(1040px, calc(100vw - 36px));
+        margin: 0 auto;
+        border-top: 3px solid var(--menu-line);
+        border-bottom: 3px solid var(--menu-line);
+        background: linear-gradient(
+          90deg,
+          rgba(0, 0, 0, 0.74) 0%,
+          rgba(0, 0, 0, 0.55) 52%,
+          rgba(0, 0, 0, 0.35) 100%
+        );
+        box-shadow:
+          inset 0 0 0 2px rgba(0, 0, 0, 0.6),
+          0 0 36px var(--menu-panel-shadow);
+        padding: 26px 24px 28px;
+      }
+
+      #intro-panel::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+        background: linear-gradient(
+          180deg,
+          rgba(255, 255, 255, 0.03) 0%,
+          rgba(255, 255, 255, 0) 15%,
+          rgba(255, 255, 255, 0) 85%,
+          rgba(255, 255, 255, 0.02) 100%
+        );
       }
 
       .intro-row-line {
         width: 100%;
-        height: 4px;
+        height: 3px;
         background: url("assets/intro/line.png") center/contain repeat-x;
-        opacity: 0.85;
+        opacity: 0.9;
       }
 
       #intro-logo {
-        width: clamp(130px, 18vw, 220px);
+        width: clamp(96px, 12vw, 140px);
         image-rendering: pixelated;
-        filter: drop-shadow(0 0 12px rgba(0, 0, 0, 0.8));
+        filter: drop-shadow(0 0 8px rgba(0, 0, 0, 0.85));
       }
 
       #intro-heading {
-        margin-top: 14px;
+        margin-top: 10px;
+        display: flex;
+        align-items: flex-end;
+        gap: 14px;
+        flex-wrap: wrap;
       }
 
       #intro-title-main {
         margin: 0;
-        min-height: clamp(44px, 8vw, 88px);
+        min-height: clamp(32px, 6.2vw, 60px);
       }
 
       #intro-title-sub {
-        margin-top: 8px;
-        min-height: clamp(18px, 2.4vw, 28px);
+        margin-top: 0;
+        min-height: clamp(14px, 2.3vw, 22px);
       }
 
       #intro-form {
-        margin-top: 30px;
-        width: min(930px, 100%);
+        margin-top: 22px;
+        width: min(900px, 100%);
+        border-top: 2px solid rgba(66, 66, 66, 0.85);
+        padding-top: 20px;
       }
 
       #intro-name-row {
         display: grid;
-        grid-template-columns: minmax(200px, 36%) 1fr;
+        grid-template-columns: minmax(160px, 34%) 1fr;
         align-items: center;
-        gap: 14px;
+        gap: 16px;
       }
 
       #intro-name-label {
-        min-height: clamp(18px, 2.5vw, 28px);
+        min-height: clamp(16px, 2.1vw, 24px);
       }
 
       #intro-name-input {
-        height: clamp(44px, 5.8vw, 74px);
-        border: 2px solid #24272d;
-        background: rgba(5, 6, 7, 0.88);
+        height: clamp(40px, 5.2vw, 58px);
+        border: 2px solid #2e3138;
+        background: rgba(0, 0, 0, 0.78);
         color: var(--menu-text);
-        padding: 0 14px;
-        font-size: clamp(17px, 2.2vw, 44px);
+        padding: 0 12px;
+        font-family: "Lucida Console", "Courier New", monospace;
+        font-size: clamp(16px, 1.95vw, 32px);
+        letter-spacing: 0.4px;
         outline: none;
       }
 
       #intro-name-input:focus {
-        border-color: #595f67;
-        box-shadow: 0 0 0 2px rgba(21, 21, 21, 0.8);
+        border-color: #666d77;
+        box-shadow: 0 0 0 1px rgba(73, 73, 73, 0.9);
       }
 
       #intro-controls {
-        margin-top: 18px;
-        display: flex;
+        margin-top: 16px;
+        display: grid;
+        grid-template-columns: 1fr auto;
         align-items: center;
-        justify-content: space-between;
         gap: 16px;
       }
 
@@ -171,10 +205,13 @@
       }
 
       #intro-enter-btn {
-        min-width: 220px;
-        height: 52px;
-        border: 2px solid #702020;
-        background: linear-gradient(180deg, rgba(147, 27, 27, 0.95), rgba(86, 11, 11, 0.92));
+        min-width: 230px;
+        height: 48px;
+        border: 2px solid rgba(118, 26, 26, 0.95);
+        border-right-width: 3px;
+        background:
+          linear-gradient(180deg, rgba(132, 24, 24, 0.95), rgba(80, 12, 12, 0.95)),
+          rgba(80, 12, 12, 0.95);
         color: #ece9e9;
         font-family: inherit;
         cursor: pointer;
@@ -182,6 +219,13 @@
         align-items: center;
         justify-content: center;
         padding: 0 14px;
+        transition: filter 120ms linear, border-color 120ms linear;
+      }
+
+      #intro-enter-btn:hover:not(:disabled),
+      #intro-enter-btn:focus-visible:not(:disabled) {
+        border-color: #c23a3a;
+        filter: brightness(1.14);
       }
 
       #intro-enter-btn:disabled {
@@ -190,7 +234,8 @@
       }
 
       #intro-status {
-        margin-top: 22px;
+        margin-top: 18px;
+        max-width: 920px;
       }
 
       #intro-status-text {
@@ -198,10 +243,10 @@
       }
 
       #intro-progress-shell {
-        margin-top: 9px;
-        height: 16px;
-        border: 1px solid #454b54;
-        background: rgba(3, 3, 3, 0.85);
+        margin-top: 8px;
+        height: 14px;
+        border: 1px solid #464c53;
+        background: rgba(3, 3, 3, 0.9);
         position: relative;
         overflow: hidden;
       }
@@ -212,7 +257,7 @@
         top: 0;
         height: 100%;
         width: 0%;
-        background: linear-gradient(90deg, var(--menu-red-soft), var(--menu-red));
+        background: linear-gradient(90deg, var(--menu-red-dark), var(--menu-red));
         transition: width 110ms linear;
       }
 
@@ -222,15 +267,15 @@
       }
 
       #intro-progress-percent {
-        margin-top: 8px;
+        margin-top: 6px;
         text-align: right;
         min-height: 12px;
       }
 
       #intro-cursor {
         position: absolute;
-        right: 22px;
-        bottom: 18px;
+        right: 20px;
+        bottom: 16px;
         width: 42px;
         height: 42px;
         background: url("assets/intro/hilight.png") center/contain no-repeat;
@@ -282,11 +327,11 @@
       }
 
       .bitmap-medium {
-        --scale: 1.8;
+        --scale: 1.65;
       }
 
       .bitmap-large {
-        --scale: 3;
+        --scale: 2.7;
       }
 
       .legacy-hidden {
@@ -313,19 +358,20 @@
 
       @media (max-width: 740px) {
         #intro-panel {
-          width: calc(100vw - 20px);
-          min-height: calc(100vh - 22px);
-          padding: 20px 14px;
+          width: calc(100vw - 16px);
+          top: 8px;
+          bottom: 8px;
+          padding: 14px 10px 16px;
         }
 
         #intro-name-row {
           grid-template-columns: 1fr;
-          gap: 8px;
+          gap: 6px;
         }
 
         #intro-controls {
-          flex-direction: column;
-          align-items: stretch;
+          grid-template-columns: 1fr;
+          align-items: start;
         }
 
         #intro-enter-btn {
@@ -334,11 +380,11 @@
         }
 
         .bitmap-large {
-          --scale: 2.2;
+          --scale: 2.0;
         }
 
         .bitmap-medium {
-          --scale: 1.45;
+          --scale: 1.35;
         }
       }
     </style>
