@@ -421,7 +421,6 @@
         downloadsDone: false,
         engineReady: false,
         handoffDone: false,
-        autoEnterWhenReady: false,
         els: {},
         init: function() {
           this.els.overlay = document.getElementById("intro-overlay");
@@ -457,12 +456,10 @@
             this.els.input.disabled = next !== "idle";
           }
           if (this.els.enter) {
-            this.els.enter.disabled = !(next === "idle" || next === "ready_to_enter");
+            this.els.enter.disabled = next !== "idle";
           }
           if (this.els.enterText) {
-            if (next === "ready_to_enter") {
-              renderBitmapText(this.els.enterText, "ENTER GAME");
-            } else if (next === "starting" || next === "loading" || next === "engine_ready") {
+            if (next === "starting" || next === "loading" || next === "engine_ready") {
               renderBitmapText(this.els.enterText, "LOADING...");
             } else {
               renderBitmapText(this.els.enterText, "ENTER");
@@ -497,11 +494,12 @@
           if (this.handoffDone || !this.downloadsDone || !this.engineReady) {
             return;
           }
-          this.setState("ready_to_enter");
-          this.setStatus("READY. PRESS ENTER GAME.", 100, false);
-          if (this.autoEnterWhenReady) {
-            this.handoff();
-          }
+          this.setState("engine_ready");
+          this.setStatus("FINALIZING LAUNCH...", 100, false);
+          var self = this;
+          setTimeout(function() {
+            self.handoff();
+          }, 650);
         },
         handoff: function() {
           if (this.handoffDone || !this.downloadsDone || !this.engineReady) {
@@ -572,10 +570,6 @@
           Module.arguments = next;
         },
         handleEnterAction: function() {
-          if (IntroUI.state === "ready_to_enter") {
-            IntroUI.handoff();
-            return;
-          }
           if (this.started || Module.began) {
             return;
           }
@@ -781,7 +775,6 @@
         });
 
         if (window.location.hash != "") {
-          IntroUI.autoEnterWhenReady = true;
           requestAnimationFrame(function() {
             setTimeout(function() {
               BootBridge.handleEnterAction();
