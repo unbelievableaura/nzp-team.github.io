@@ -1,4 +1,4 @@
-const LEADERBOARD_KEY = "nzp:leaderboard:v1";
+const { sql } = require("@vercel/postgres");
 const LEADERBOARD_MAX = 5;
 
 function sanitizeText(value, maxLen, fallback) {
@@ -43,54 +43,46 @@ function rankTop(entries) {
     .slice(0, LEADERBOARD_MAX);
 }
 
-function getKvConfig() {
-  const baseUrl =
-    process.env.KV_REST_API_URL || process.env.UPSTASH_REDIS_REST_URL;
-  const token =
-    process.env.KV_REST_API_TOKEN || process.env.UPSTASH_REDIS_REST_TOKEN;
-  if (!baseUrl || !token) {
-    throw new Error(
-      "Missing KV_REST_API_URL/KV_REST_API_TOKEN (or UPSTASH_REDIS_REST_URL/UPSTASH_REDIS_REST_TOKEN)"
-    );
-  }
-  return { baseUrl, token };
+async function ensureSchema() {
+  await sql`
+    CREATE TABLE IF NOT EXISTS nzp_leaderboard_entries (
+      id BIGSERIAL PRIMARY KEY,
+      name VARCHAR(24) NOT NULL,
+      map VARCHAR(48) NOT NULL,
+      level INTEGER NOT NULL,
+      ts BIGINT NOT NULL
+    )
+  `;
 }
 
-async function kvCommand(parts) {
-  const { baseUrl, token } = getKvConfig();
-  const path = parts.map((part) => encodeURIComponent(String(part))).join("/");
-  const response = await fetch(`${baseUrl}/${path}`, {
-    method: "GET",
-    headers: {
-      Authorization: `Bearer ${token}`
-    }
-  });
+async function dbGetTopEntries(limit) {
+  const safeLimit = Math.max(1, Math.min(LEADERBOARD_MAX, limit));
+  const result = await sql`
+    SELECT name, map, level, ts
+    FROM nzp_leaderboard_entries
+    ORDER BY level DESC, ts DESC
+    LIMIT ${safeLimit}
+  `;
 
-  if (!response.ok) {
-    const text = await response.text();
-    throw new Error(`KV command failed (${response.status}): ${text}`);
-  }
-
-  return response.json();
+  return rankTop(result.rows || []);
 }
 
-async function kvLoadEntries() {
-  const payload = await kvCommand(["get", LEADERBOARD_KEY]);
-  if (!payload || payload.result == null) {
-    return [];
-  }
+async function dbInsertEntry(entry) {
+  await sql`
+    INSERT INTO nzp_leaderboard_entries (name, map, level, ts)
+    VALUES (${entry.name}, ${entry.map}, ${entry.level}, ${entry.ts})
+  `;
 
-  try {
-    const parsed = JSON.parse(payload.result);
-    if (!Array.isArray(parsed)) return [];
-    return rankTop(parsed);
-  } catch (_err) {
-    return [];
-  }
-}
-
-async function kvSaveEntries(entries) {
-  await kvCommand(["set", LEADERBOARD_KEY, JSON.stringify(entries)]);
+  // Keep table bounded without affecting ranking behavior.
+  await sql`
+    DELETE FROM nzp_leaderboard_entries
+    WHERE id NOT IN (
+      SELECT id
+      FROM nzp_leaderboard_entries
+      ORDER BY level DESC, ts DESC
+      LIMIT 500
+    )
+  `;
 }
 
 function parseBody(req) {
@@ -115,14 +107,20 @@ module.exports = async (req, res) => {
   }
 
   try {
+    if (!process.env.POSTGRES_URL) {
+      throw new Error("Missing POSTGRES_URL");
+    }
+
+    await ensureSchema();
+
     if (req.method === "GET") {
       const limitValue = Number.parseInt(req.query?.limit, 10);
       const limit = Number.isFinite(limitValue)
         ? Math.max(1, Math.min(LEADERBOARD_MAX, limitValue))
         : LEADERBOARD_MAX;
 
-      const entries = await kvLoadEntries();
-      res.status(200).json({ ok: true, entries: entries.slice(0, limit) });
+      const entries = await dbGetTopEntries(limit);
+      res.status(200).json({ ok: true, entries });
       return;
     }
 
@@ -135,9 +133,8 @@ module.exports = async (req, res) => {
         ts: Math.floor(Date.now() / 1000)
       });
 
-      const existing = await kvLoadEntries();
-      const nextEntries = rankTop([entry, ...existing]);
-      await kvSaveEntries(nextEntries);
+      await dbInsertEntry(entry);
+      const nextEntries = await dbGetTopEntries(LEADERBOARD_MAX);
 
       res.status(200).json({ ok: true, entries: nextEntries });
       return;
