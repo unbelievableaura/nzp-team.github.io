@@ -583,6 +583,7 @@
 
       var BootBridge = {
         started: false,
+        forceHandoffTimer: null,
         ensureArgs: function(name) {
           var current = Array.isArray(Module.arguments) ? Module.arguments.slice() : [];
           var next = [];
@@ -609,6 +610,14 @@
           IntroUI.setState("starting");
           IntroUI.setStatus("DOWNLOADING...", 0, false);
           begin();
+          var self = this;
+          this.forceHandoffTimer = setTimeout(function() {
+            if (!IntroUI.handoffDone && IntroUI.downloadsDone) {
+              IntroUI.markEngineReady();
+              IntroUI.setStatus("LAUNCHING...", 100, false);
+              IntroUI.handoff();
+            }
+          }, 12000);
         }
       };
 
@@ -672,27 +681,18 @@
         },
         postRun: [
           function() {
-            if (Module["sched"] === undefined) {
-              alert("Unable to initialise. You may need to restart your browser. If you get this often and inconsistently, consider using a 64bit browser instead.");
-              Module.setStatus("Initialisation Failure");
-              return;
+            if (BootBridge.forceHandoffTimer) {
+              clearTimeout(BootBridge.forceHandoffTimer);
+              BootBridge.forceHandoffTimer = null;
             }
             IntroUI.markEngineReady();
-            // Only hand off after at least one scheduled frame callback has fired.
-            var originalSched = Module.sched;
-            var frameSeen = false;
-            Module.sched = function() {
-              if (!frameSeen) {
-                frameSeen = true;
+            // postRun is the most reliable "engine up" signal in this runtime.
+            // Mark first-frame-ready shortly after to avoid deadlock on sched quirks.
+            setTimeout(function() {
+              if (!IntroUI.frameReady) {
                 IntroUI.markFrameReady();
               }
-              return originalSched.apply(this, arguments);
-            };
-            setTimeout(function() {
-              if (!frameSeen && IntroUI.downloadsDone && !IntroUI.handoffDone) {
-                IntroUI.setStatus("FINALIZING LAUNCH...", 100, false);
-              }
-            }, 2000);
+            }, 250);
           }
         ]
       };
