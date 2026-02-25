@@ -1,196 +1,658 @@
 <!doctype html>
 <html lang="en-us">
   <head>
-	<meta charset="utf-8">
-	<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-	<meta name=viewport content="width=device-width, initial-scale=1">
-	<meta content="Nazi Zombies: Portable" property="og:title" />
-    	<meta content="Call of Duty: Zombies de-make, now in your browser via WebGL!" property="og:description" />
-    	<meta content="https://nzp-team.github.io/latest/game.html" property="og:url" />
-   	<meta content="hhttps://nzp-team.github.io/latest/nzportable.ico" property="og:image" />
-	<meta content="#6e0d00" data-react-helmet="true" name="theme-color" />
-	<title>NZ: Portable</title>
-	<link rel="icon" href="nzportable.ico">
-	<style>
-	html,body { background-color:#000000; color:#808080; height:100%;width:100%;margin:0;padding:0;}
-	.emscripten { padding-right: 0; margin-left: auto; margin-right: auto; display: block; }
-	div.emscripten { text-align: center; padding:0; margin: 0;}
-	/* the canvas *must not* have any border or padding, or mouse coords will be wrong */
-	canvas.emscripten { border: 0px none; width:100%; height:100%; padding:0; margin: 0;}
-	</style>
+    <meta charset="utf-8">
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta content="Nazi Zombies: Portable" property="og:title" />
+    <meta content="Call of Duty: Zombies de-make, now in your browser via WebGL!" property="og:description" />
+    <meta content="https://nzp-team.github.io/latest/game.html" property="og:url" />
+    <meta content="hhttps://nzp-team.github.io/latest/nzportable.ico" property="og:image" />
+    <meta content="#6e0d00" data-react-helmet="true" name="theme-color" />
+    <title>NZ: Portable</title>
+    <link rel="icon" href="nzportable.ico">
+    <style>
+      :root {
+        --bg: #030303;
+        --panel: rgba(4, 4, 4, 0.90);
+        --text: #c9cbce;
+        --muted: #96989c;
+        --accent: #9b1111;
+        --accent-strong: #c71818;
+      }
+
+      html,
+      body {
+        background-color: var(--bg);
+        color: var(--text);
+        height: 100%;
+        width: 100%;
+        margin: 0;
+        padding: 0;
+        overflow: hidden;
+        font-family: "Press Start 2P", "VT323", "Lucida Console", "Courier New", monospace;
+      }
+
+      .emscripten {
+        padding-right: 0;
+        margin-left: auto;
+        margin-right: auto;
+        display: block;
+      }
+
+      div.emscripten {
+        text-align: center;
+        padding: 0;
+        margin: 0;
+      }
+
+      /* the canvas must not have any border or padding, or mouse coords will be wrong */
+      canvas.emscripten {
+        border: 0 none;
+        width: 100%;
+        height: 100%;
+        padding: 0;
+        margin: 0;
+        background: #000;
+      }
+
+      #canvas[hidden] {
+        display: none;
+      }
+
+      #intro-overlay {
+        position: fixed;
+        inset: 0;
+        z-index: 30;
+        display: grid;
+        place-items: center;
+        background:
+          radial-gradient(1200px 600px at 22% 20%, rgba(88, 14, 14, 0.20), transparent 65%),
+          radial-gradient(1000px 500px at 75% 60%, rgba(35, 35, 35, 0.20), transparent 62%),
+          linear-gradient(180deg, #020202 0%, #090909 100%);
+      }
+
+      #intro-overlay::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background: repeating-linear-gradient(
+          180deg,
+          rgba(255, 255, 255, 0.02) 0,
+          rgba(255, 255, 255, 0.02) 1px,
+          rgba(0, 0, 0, 0) 2px,
+          rgba(0, 0, 0, 0) 4px
+        );
+        pointer-events: none;
+      }
+
+      #intro-overlay.intro-hidden {
+        opacity: 0;
+        visibility: hidden;
+        transition: opacity 260ms ease, visibility 260ms ease;
+      }
+
+      #intro-panel {
+        position: relative;
+        width: min(920px, calc(100vw - 40px));
+        padding: 34px 32px 26px;
+        border: 2px solid rgba(154, 155, 158, 0.58);
+        background: var(--panel);
+        box-shadow:
+          0 0 0 1px rgba(8, 8, 8, 0.85) inset,
+          0 0 42px rgba(0, 0, 0, 0.6),
+          0 0 18px rgba(167, 18, 18, 0.16);
+      }
+
+      #intro-title-main {
+        margin: 0;
+        color: #d2d4d8;
+        font-size: clamp(34px, 5.8vw, 78px);
+        line-height: 1.02;
+        letter-spacing: 0.10em;
+        text-transform: uppercase;
+        text-shadow:
+          0 0 5px rgba(255, 255, 255, 0.16),
+          0 0 18px rgba(0, 0, 0, 0.65);
+      }
+
+      #intro-title-sub {
+        margin: 12px 0 24px;
+        color: var(--accent-strong);
+        font-size: clamp(14px, 2.2vw, 28px);
+        letter-spacing: 0.32em;
+        text-transform: uppercase;
+        text-shadow: 0 0 10px rgba(125, 0, 0, 0.66);
+      }
+
+      .intro-divider {
+        height: 2px;
+        background: linear-gradient(90deg, transparent 0%, rgba(151, 20, 20, 0.85) 20%, rgba(151, 20, 20, 0.85) 80%, transparent 100%);
+        margin-bottom: 24px;
+      }
+
+      #intro-name-row {
+        display: grid;
+        grid-template-columns: minmax(180px, 32%) 1fr;
+        gap: 14px;
+        align-items: center;
+      }
+
+      #intro-name-label {
+        color: #b6b8bc;
+        font-size: clamp(12px, 1.6vw, 18px);
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+      }
+
+      #intro-name-input {
+        height: 52px;
+        border: 2px solid rgba(96, 100, 108, 0.74);
+        background: rgba(2, 2, 2, 0.88);
+        color: #dedfe1;
+        outline: none;
+        padding: 0 14px;
+        font-size: clamp(14px, 1.9vw, 22px);
+        letter-spacing: 0.04em;
+        text-transform: none;
+      }
+
+      #intro-name-input:focus {
+        border-color: rgba(170, 174, 180, 0.9);
+        box-shadow: 0 0 0 1px rgba(15, 15, 15, 0.9) inset, 0 0 12px rgba(120, 20, 20, 0.40);
+      }
+
+      #intro-action-row {
+        display: flex;
+        justify-content: flex-end;
+        margin-top: 22px;
+      }
+
+      #intro-enter-btn {
+        min-width: 210px;
+        height: 52px;
+        border: 2px solid rgba(167, 29, 29, 0.82);
+        background: linear-gradient(180deg, rgba(86, 7, 7, 0.92) 0%, rgba(42, 5, 5, 0.96) 100%);
+        color: #e5dfe0;
+        font-family: inherit;
+        font-size: clamp(14px, 1.7vw, 20px);
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+        cursor: pointer;
+      }
+
+      #intro-enter-btn:hover {
+        filter: brightness(1.08);
+      }
+
+      #intro-enter-btn:disabled {
+        opacity: 0.58;
+        cursor: default;
+      }
+
+      #intro-status-wrap {
+        margin-top: 22px;
+      }
+
+      #intro-status-text {
+        color: var(--muted);
+        min-height: 20px;
+        font-size: clamp(11px, 1.2vw, 14px);
+        letter-spacing: 0.05em;
+      }
+
+      #intro-progress-shell {
+        margin-top: 10px;
+        height: 14px;
+        border: 1px solid rgba(111, 114, 120, 0.66);
+        background: rgba(0, 0, 0, 0.7);
+        position: relative;
+        overflow: hidden;
+      }
+
+      #intro-progress-fill {
+        position: absolute;
+        inset: 0 auto 0 0;
+        width: 0%;
+        background: linear-gradient(90deg, rgba(126, 17, 17, 0.9), rgba(189, 38, 38, 0.94));
+        transition: width 120ms linear;
+      }
+
+      #intro-progress-percent {
+        margin-top: 8px;
+        text-align: right;
+        color: #acafb3;
+        font-size: 11px;
+      }
+
+      .intro-loading #intro-name-row,
+      .intro-loading #intro-action-row {
+        opacity: 0.55;
+        pointer-events: none;
+      }
+
+      .legacy-hidden {
+        position: absolute !important;
+        width: 1px !important;
+        height: 1px !important;
+        padding: 0 !important;
+        margin: -1px !important;
+        overflow: hidden !important;
+        clip: rect(0, 0, 0, 0) !important;
+        white-space: nowrap !important;
+        border: 0 !important;
+      }
+
+      @media (max-width: 720px) {
+        #intro-panel {
+          width: calc(100vw - 22px);
+          padding: 22px 14px 18px;
+        }
+
+        #intro-title-sub {
+          margin-top: 8px;
+          margin-bottom: 18px;
+          letter-spacing: 0.18em;
+        }
+
+        #intro-name-row {
+          grid-template-columns: 1fr;
+          gap: 8px;
+        }
+
+        #intro-name-input {
+          height: 46px;
+          font-size: 16px;
+        }
+
+        #intro-action-row {
+          margin-top: 14px;
+          justify-content: stretch;
+        }
+
+        #intro-enter-btn {
+          width: 100%;
+          min-width: 0;
+          height: 46px;
+        }
+      }
+    </style>
   </head>
   <body ondrop="gotdrop(event);" ondragover="event.preventDefault()">
-	<div class="emscripten" id="status">Please allow/unblock our javascript to play.</div>
-	<div id="dropzone" ondrop="gotdrop(event);" ondragover="event.preventDefault()" hidden=1>Drop Zone</div>
-	<button type="button" onclick="begin()" id="begin" hidden=1>Click To Begin!</button>
-	<div class="emscripten">
-		<progress value="0" max="100" id="progress" hidden=1></progress>  
-	</div>
-	<canvas class="emscripten" id="canvas" oncontextmenu="event.preventDefault()" hidden=1></canvas>
-	<script type='text/javascript'>
-// connect to canvas
-var Module = {
-	files:
-	{
-		"default.fmf" : "default.fmf",
-		"nzp/game.pk3" : "nzp/game.pk3",
-		"nzp/progs.pk3" : "nzp/progs.pk3"
-	},
-	print: function(msg)
-	{	//stdout...
-		console.log(msg);
-	},
-	printErr: function(text)
-	{	//stderr...
-		console.log(text);
-	},
-	canvas: document.getElementById('canvas'),	//for webgl to attach to
-	setStatus: function(text)
-	{	//gets spammed some prints during startup. blame emscripten.
-		if (Module.setStatus.interval)
-			clearInterval(Module.setStatus.interval);
-		var m = text.match(/([^(]+)\((\d+(\.\d+)?)\/(\d+)\)/);
-		var statusElement = document.getElementById('status');
-		var progressElement = document.getElementById('progress');
-		if (m) {
-			text = m[1];
-			progressElement.value = parseInt(m[2])*100;
-			progressElement.max = parseInt(m[4])*100;
-			progressElement.hidden = false;
-		} else {
-			progressElement.value = null;
-			progressElement.max = null;
-			progressElement.hidden = true;
-		}
-		statusElement.innerHTML = text;
-		statusElement.hidden = text.length==0;
-	},
-//	preRun: [],
-	totalDependencies: 0,
-	monitorRunDependencies: function(left)
-	{	//progress is progress...
-		this.totalDependencies = Math.max(this.totalDependencies, left);
-		Module.setStatus(left ? 'Preparing... (' + (this.totalDependencies-left) + '/' + this.totalDependencies + ')' : 'All downloads complete.');
-	},
-//	onRuntimeInitialized: function(){},
-	postRun:
-	[	//each of these are called after main was run. we should have our mainloop set up now
-		function()
-		{
-			if (Module["sched"] === undefined)
-			{	//our main function failed to set up the main loop. ie: main didn't get called. panic.
-				alert("Unable to initialise. You may need to restart your browser. If you get this often and inconsistently, consider using a 64bit browser instead.");
-				Module.setStatus("Initialisation Failure");
-			}
-		}
-	],
-};
-function begin()
-{
-	if (Module.began)
-		return;
-	Module.began = true;
-	document.getElementById('dropzone').hidden = true;
-	document.getElementById('begin').hidden = true;
-	Module.setStatus('Downloading...');
+    <div id="intro-overlay" role="dialog" aria-label="NZP Intro">
+      <section id="intro-panel">
+        <h1 id="intro-title-main">NAZI ZOMBIES</h1>
+        <div id="intro-title-sub">ON SOLANA</div>
+        <div class="intro-divider"></div>
 
-	// make a script. do it the hard way for the error.
-	var s = document.createElement('script');
-	// set it up
-	s.setAttribute('src',"ftewebgl.js");
-	s.setAttribute('type',"text/javascript");
-	s.setAttribute('charset',"utf-8");
-	s.addEventListener('error', function() {alert("Oh noes! we got an error!"); Module.setStatus("Unable to download engine javascript");}, false);
-	// add to DOM
-	document.head.appendChild(s);
-}
+        <div id="intro-name-row">
+          <label id="intro-name-label" for="intro-name-input">PLAYER NAME</label>
+          <input id="intro-name-input" type="text" maxlength="24" autocomplete="name" spellcheck="false" value="Unknown Soldier">
+        </div>
 
-//stuff to facilitate our drag+drop filesystem support
-function fixupfilepath(fname, path)
-{	//we just have a filename, try to guess where to put it.
-	if (path != "")
-		return path+fname;	//already has a path. use it. this allows people to drag+drop gamedirs.
-	var ext = fname.substr(fname.lastIndexOf('.') + 1);
-	if (ext == 'fmf' || ext == 'kpf')	//these are the only files that really make sense in the root.
-		return fname;
-	if (ext == 'bsp' || ext == 'map' || ext == 'lit' || ext == 'lux')
-		return "id1/maps/" + fname;	//bsps get their own extra subdir
-	return "id1/" + fname;	//probably a pak. maybe a cfg, no idea really.
-}
-function showfiles()
-{	//print the pending file list in some pretty way
-	if (Module.began)
-		return;
-	Module.setStatus('');
-	document.getElementById('dropzone').hidden = false;
-	document.getElementById('begin').hidden = false;
-	var nt = "Drag gamedirs or individual package files here to make them available!<br/>Active Files:<br/><pre>";
-	var keys = Object.keys(Module.files);
-	for(var i = 0; i < keys.length; i++)
-	{
-		if (Module.files[keys[i]] instanceof ArrayBuffer)
-		{
-			var sz = Module.files[keys[i]].byteLength;
-			if (sz > 512*1024)
-				sz = (sz / (1024*1024)) + "mb";
-			else if (sz > 512)
-				sz = (sz / 1024) + "kb";
-			else
-				sz = (sz) + " bytes";
-			nt += "    " + keys[i] + " ("+sz+")<br/>";
-		}
-		else
-			nt += "    " + keys[i] + "<br/>";
-	}
-	nt += "</pre>("+keys.length+" files)";
-	document.getElementById('dropzone').innerHTML = nt;
-}
-function scanfiles(item,path)
-{	//for directory drops
-	if (item.isFile)
-	{
-		item.file(function(f)
-		{
-			let n = fixupfilepath(f.name, path);
-			Module.files[n]=f.arrayBuffer();	//actually a promise...
-			Module.files[n].then(buf=>{Module.files[n]=buf;showfiles();});	//try and resolve it now.
-    	});
-	}
-	else if (item.isDirectory)
-	{
-		// Get folder contents
-		var dirReader = item.createReader();
-		dirReader.readEntries(function(entries)
-		{
-			for (var i=0; i<entries.length; i++)
-				scanfiles(entries[i], path + item.name + "/");
-		});
-	}
-}
-function gotdrop(ev)
-{	//user drag+dropped something. 
-	ev.preventDefault();
-	for (var i = 0; i < ev.dataTransfer.items.length; i++)
-		if (ev.dataTransfer.items[i].webkitGetAsEntry)
-		{
-			var d = ev.dataTransfer.items[i].webkitGetAsEntry();
-			if (d)
-				scanfiles(d, "");
-		}
-		else if (ev.dataTransfer.items[i].kind === 'file')
-		{
-			var f = ev.dataTransfer.items[i].getAsFile();
-			var n = fixupfilepath(f.name);
-			Module.files[n]=f.arrayBuffer();	//actually a promise...
-			Module.files[n].then(buf=>{Module.files[n]=buf;showfiles();});	//try and resolve it now.
-		}
-	showfiles();
-}
-if (window.location.hash != "" || Object.keys(Module.files).length)
-	begin();		//if the url has a #foo.fmf then just begin instantly, 
-else
-	showfiles();	//otherwise show our lame file dropper and wait for the user to click 'go'.
-    </script>  
-    <img src="https://hits.sh/hits.sh/nzp-team.github.io/latest/game.html/hits.svg" style="opacity:0;width:0px;">
+        <div id="intro-action-row">
+          <button type="button" id="intro-enter-btn">ENTER</button>
+        </div>
+
+        <div id="intro-status-wrap">
+          <div id="intro-status-text">Awaiting deployment orders...</div>
+          <div id="intro-progress-shell" aria-hidden="true">
+            <div id="intro-progress-fill"></div>
+          </div>
+          <div id="intro-progress-percent">0%</div>
+        </div>
+      </section>
+    </div>
+
+    <div class="emscripten legacy-hidden" id="status">Please allow/unblock our javascript to play.</div>
+    <div id="dropzone" class="legacy-hidden" ondrop="gotdrop(event);" ondragover="event.preventDefault()" hidden="1">Drop Zone</div>
+    <button type="button" onclick="begin()" class="legacy-hidden" id="begin" hidden="1">Click To Begin!</button>
+    <div class="emscripten legacy-hidden">
+      <progress value="0" max="100" id="progress" hidden="1"></progress>
+    </div>
+
+    <canvas class="emscripten" id="canvas" oncontextmenu="event.preventDefault()" hidden="1"></canvas>
+
+    <script type="text/javascript">
+      var INTRO_STORAGE_KEY = "nzp_player_name";
+      var introStarted = false;
+      var overlayHidden = false;
+
+      function introElements() {
+        return {
+          overlay: document.getElementById("intro-overlay"),
+          panel: document.getElementById("intro-panel"),
+          input: document.getElementById("intro-name-input"),
+          enter: document.getElementById("intro-enter-btn"),
+          status: document.getElementById("intro-status-text"),
+          bar: document.getElementById("intro-progress-fill"),
+          percent: document.getElementById("intro-progress-percent")
+        };
+      }
+
+      function sanitizePlayerName(raw) {
+        var value = String(raw || "");
+        value = value.replace(/[\u0000-\u001F\u007F"'`\\]/g, "");
+        value = value.trim();
+        if (!value.length) {
+          return "Unknown Soldier";
+        }
+        if (value.length > 24) {
+          value = value.slice(0, 24);
+        }
+        return value;
+      }
+
+      function readStoredName() {
+        try {
+          return sanitizePlayerName(localStorage.getItem(INTRO_STORAGE_KEY));
+        } catch (err) {
+          console.warn("localStorage read failed", err);
+          return "Unknown Soldier";
+        }
+      }
+
+      function savePlayerName(name) {
+        try {
+          localStorage.setItem(INTRO_STORAGE_KEY, name);
+        } catch (err) {
+          console.warn("localStorage write failed", err);
+        }
+      }
+
+      function setModuleNameArgs(name) {
+        var args = Array.isArray(Module.arguments) ? Module.arguments.slice() : [];
+        var cleaned = [];
+        for (var i = 0; i < args.length; i++) {
+          if (args[i] === "+name") {
+            i += 1;
+            continue;
+          }
+          cleaned.push(args[i]);
+        }
+        cleaned.push("+name");
+        cleaned.push(name);
+        Module.arguments = cleaned;
+      }
+
+      function setIntroStatus(text, percent) {
+        var ui = introElements();
+        if (!ui.status || !ui.bar || !ui.percent) {
+          return;
+        }
+        ui.status.textContent = text || "";
+        if (typeof percent === "number" && isFinite(percent)) {
+          var clamped = Math.max(0, Math.min(100, percent));
+          ui.bar.style.width = clamped + "%";
+          ui.percent.textContent = Math.round(clamped) + "%";
+        }
+      }
+
+      function hideIntroOverlay() {
+        if (overlayHidden) {
+          return;
+        }
+        overlayHidden = true;
+        var ui = introElements();
+        var canvas = document.getElementById("canvas");
+        if (canvas) {
+          canvas.hidden = false;
+        }
+        if (ui.overlay) {
+          ui.overlay.classList.add("intro-hidden");
+        }
+      }
+
+      function startFromIntro() {
+        if (introStarted || Module.began) {
+          return;
+        }
+
+        var ui = introElements();
+        if (!ui.input || !ui.enter || !ui.overlay) {
+          console.warn("Intro UI missing; falling back to legacy boot flow.");
+          begin();
+          return;
+        }
+
+        introStarted = true;
+        var playerName = sanitizePlayerName(ui.input.value);
+        ui.input.value = playerName;
+        savePlayerName(playerName);
+        setModuleNameArgs(playerName);
+
+        ui.overlay.classList.add("intro-loading");
+        ui.enter.disabled = true;
+        setIntroStatus("Downloading...", 0);
+
+        begin();
+      }
+
+      // connect to canvas
+      var Module = {
+        files: {
+          "default.fmf": "default.fmf",
+          "nzp/game.pk3": "nzp/game.pk3",
+          "nzp/progs.pk3": "nzp/progs.pk3"
+        },
+        print: function(msg) {
+          // stdout...
+          console.log(msg);
+        },
+        printErr: function(text) {
+          // stderr...
+          console.log(text);
+        },
+        canvas: document.getElementById("canvas"), // for webgl to attach to
+        setStatus: function(text) {
+          // gets spammed some prints during startup. blame emscripten.
+          if (Module.setStatus.interval) {
+            clearInterval(Module.setStatus.interval);
+          }
+          var m = text.match(/([^(]+)\((\d+(\.\d+)?)\/(\d+)\)/);
+          var statusElement = document.getElementById("status");
+          var progressElement = document.getElementById("progress");
+          var progressPercent = null;
+          if (m) {
+            text = m[1].trim();
+            var value = parseInt(m[2], 10) * 100;
+            var max = parseInt(m[4], 10) * 100;
+            progressElement.value = value;
+            progressElement.max = max;
+            progressElement.hidden = false;
+            if (max > 0) {
+              progressPercent = (value / max) * 100;
+            }
+          } else {
+            progressElement.value = null;
+            progressElement.max = null;
+            progressElement.hidden = true;
+          }
+          statusElement.innerHTML = text;
+          statusElement.hidden = text.length === 0;
+
+          if (text === "All downloads complete.") {
+            if (progressPercent === null) {
+              progressPercent = 100;
+            }
+            setTimeout(hideIntroOverlay, 700);
+          }
+
+          setIntroStatus(text || "", progressPercent);
+        },
+        // preRun: [],
+        totalDependencies: 0,
+        monitorRunDependencies: function(left) {
+          // progress is progress...
+          this.totalDependencies = Math.max(this.totalDependencies, left);
+          Module.setStatus(
+            left
+              ? "Preparing... (" + (this.totalDependencies - left) + "/" + this.totalDependencies + ")"
+              : "All downloads complete."
+          );
+        },
+        // onRuntimeInitialized: function(){},
+        postRun: [
+          // each of these are called after main was run. we should have our mainloop set up now
+          function() {
+            if (Module["sched"] === undefined) {
+              // our main function failed to set up the main loop. ie: main didn't get called. panic.
+              alert(
+                "Unable to initialise. You may need to restart your browser. If you get this often and inconsistently, consider using a 64bit browser instead."
+              );
+              Module.setStatus("Initialisation Failure");
+            }
+          }
+        ]
+      };
+
+      function begin() {
+        if (Module.began) {
+          return;
+        }
+        Module.began = true;
+        document.getElementById("dropzone").hidden = true;
+        document.getElementById("begin").hidden = true;
+        Module.setStatus("Downloading...");
+
+        // make a script. do it the hard way for the error.
+        var s = document.createElement("script");
+        // set it up
+        s.setAttribute("src", "ftewebgl.js");
+        s.setAttribute("type", "text/javascript");
+        s.setAttribute("charset", "utf-8");
+        s.addEventListener(
+          "error",
+          function() {
+            alert("Oh noes! we got an error!");
+            Module.setStatus("Unable to download engine javascript");
+          },
+          false
+        );
+        // add to DOM
+        document.head.appendChild(s);
+      }
+
+      // stuff to facilitate our drag+drop filesystem support
+      function fixupfilepath(fname, path) {
+        // we just have a filename, try to guess where to put it.
+        if (path != "") {
+          return path + fname; // already has a path. use it. this allows people to drag+drop gamedirs.
+        }
+        var ext = fname.substr(fname.lastIndexOf(".") + 1);
+        if (ext == "fmf" || ext == "kpf") {
+          // these are the only files that really make sense in the root.
+          return fname;
+        }
+        if (ext == "bsp" || ext == "map" || ext == "lit" || ext == "lux") {
+          return "id1/maps/" + fname; // bsps get their own extra subdir
+        }
+        return "id1/" + fname; // probably a pak. maybe a cfg, no idea really.
+      }
+
+      function showfiles() {
+        // print the pending file list in some pretty way
+        if (Module.began) {
+          return;
+        }
+        Module.setStatus("");
+        document.getElementById("dropzone").hidden = false;
+        document.getElementById("begin").hidden = false;
+        var nt =
+          "Drag gamedirs or individual package files here to make them available!<br/>Active Files:<br/><pre>";
+        var keys = Object.keys(Module.files);
+        for (var i = 0; i < keys.length; i++) {
+          if (Module.files[keys[i]] instanceof ArrayBuffer) {
+            var sz = Module.files[keys[i]].byteLength;
+            if (sz > 512 * 1024) {
+              sz = sz / (1024 * 1024) + "mb";
+            } else if (sz > 512) {
+              sz = sz / 1024 + "kb";
+            } else {
+              sz = sz + " bytes";
+            }
+            nt += "    " + keys[i] + " (" + sz + ")<br/>";
+          } else {
+            nt += "    " + keys[i] + "<br/>";
+          }
+        }
+        nt += "</pre>(" + keys.length + " files)";
+        document.getElementById("dropzone").innerHTML = nt;
+      }
+
+      function scanfiles(item, path) {
+        // for directory drops
+        if (item.isFile) {
+          item.file(function(f) {
+            var n = fixupfilepath(f.name, path);
+            Module.files[n] = f.arrayBuffer(); // actually a promise...
+            Module.files[n].then(function(buf) {
+              Module.files[n] = buf;
+              showfiles();
+            }); // try and resolve it now.
+          });
+        } else if (item.isDirectory) {
+          // Get folder contents
+          var dirReader = item.createReader();
+          dirReader.readEntries(function(entries) {
+            for (var i = 0; i < entries.length; i++) {
+              scanfiles(entries[i], path + item.name + "/");
+            }
+          });
+        }
+      }
+
+      function gotdrop(ev) {
+        // user drag+dropped something.
+        ev.preventDefault();
+        for (var i = 0; i < ev.dataTransfer.items.length; i++) {
+          if (ev.dataTransfer.items[i].webkitGetAsEntry) {
+            var d = ev.dataTransfer.items[i].webkitGetAsEntry();
+            if (d) {
+              scanfiles(d, "");
+            }
+          } else if (ev.dataTransfer.items[i].kind === "file") {
+            var f = ev.dataTransfer.items[i].getAsFile();
+            var n = fixupfilepath(f.name);
+            Module.files[n] = f.arrayBuffer(); // actually a promise...
+            Module.files[n].then(function(buf) {
+              Module.files[n] = buf;
+              showfiles();
+            }); // try and resolve it now.
+          }
+        }
+        showfiles();
+      }
+
+      (function initIntroFlow() {
+        var ui = introElements();
+        if (!ui.overlay || !ui.input || !ui.enter) {
+          showfiles();
+          return;
+        }
+
+        var remembered = readStoredName();
+        ui.input.value = remembered;
+
+        ui.enter.addEventListener("click", function() {
+          startFromIntro();
+        });
+
+        ui.input.addEventListener("keydown", function(ev) {
+          if (ev.key === "Enter") {
+            ev.preventDefault();
+            startFromIntro();
+          }
+        });
+
+        var shouldAutoStart = window.location.hash !== "";
+        if (shouldAutoStart) {
+          requestAnimationFrame(function() {
+            setTimeout(startFromIntro, 40);
+          });
+        }
+      })();
+    </script>
+    <img src="https://hits.sh/hits.sh/nzp-team.github.io/latest/game.html/hits.svg" style="opacity:0;width:0;">
   </body>
 </html>
