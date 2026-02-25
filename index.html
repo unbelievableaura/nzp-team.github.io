@@ -615,16 +615,12 @@
         urls: {
           fmf: withRev("default.fmf"),
           game: withRev("nzp/game.pk3"),
-          progs: withRev("nzp/progs.pk3"),
-          js: withRev("ftewebgl.js"),
-          wasm: withRev("ftewebgl.wasm")
+          progs: withRev("nzp/progs.pk3")
         },
         expectedBytes: {
           fmf: 96,
           game: 93481452,
-          progs: 478925,
-          js: 165608,
-          wasm: 5178106
+          progs: 478925
         },
         loadedByKey: {},
         buffers: {},
@@ -686,8 +682,8 @@
           }
           this.started = true;
           this.state = "preloading";
-          this.totalExpected = this.expectedBytes.fmf + this.expectedBytes.game + this.expectedBytes.progs + this.expectedBytes.js + this.expectedBytes.wasm;
-          this.loadedByKey = { fmf: 0, game: 0, progs: 0, js: 0, wasm: 0 };
+          this.totalExpected = this.expectedBytes.fmf + this.expectedBytes.game + this.expectedBytes.progs;
+          this.loadedByKey = { fmf: 0, game: 0, progs: 0 };
           IntroUI.setState("loading");
           IntroUI.setStatus("PRELOADING PACKAGES... 0%", 0, false);
 
@@ -695,21 +691,16 @@
             var results = await Promise.all([
               this.fetchWithProgress("fmf", this.urls.fmf),
               this.fetchWithProgress("game", this.urls.game),
-              this.fetchWithProgress("progs", this.urls.progs),
-              this.fetchWithProgress("js", this.urls.js),
-              this.fetchWithProgress("wasm", this.urls.wasm)
+              this.fetchWithProgress("progs", this.urls.progs)
             ]);
 
             this.buffers.fmf = results[0];
             this.buffers.game = results[1];
             this.buffers.progs = results[2];
-            this.buffers.js = results[3];
-            this.buffers.wasm = results[4];
 
             Module.files["default.fmf"] = this.buffers.fmf;
             Module.files["nzp/game.pk3"] = this.buffers.game;
             Module.files["nzp/progs.pk3"] = this.buffers.progs;
-            Module.wasmBinary = this.buffers.wasm;
 
             this.progress = 100;
             this.state = "ready";
